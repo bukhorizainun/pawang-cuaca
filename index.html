@@ -150,6 +150,25 @@
         <div id="daily-list" class="daily-list"></div>
       </section>
 
+      <!-- Langit malam: bulan & senja -->
+      <section class="card" id="astro-card" hidden>
+        <h2>Langit malam <span class="h-sub">bulan &amp; senja</span></h2>
+        <div class="astro-main">
+          <div class="moon-disc" id="moon-icon"></div>
+          <div class="astro-moon-info">
+            <div class="moon-phase-name" id="moon-phase-name">—</div>
+            <div class="moon-illum" id="moon-illum">—</div>
+          </div>
+        </div>
+        <div class="astro-stats">
+          <div class="stat"><span class="s-label">Bulan terbit</span><span class="s-val" id="moon-rise">—</span></div>
+          <div class="stat"><span class="s-label">Bulan terbenam</span><span class="s-val" id="moon-set">—</span></div>
+          <div class="stat"><span class="s-label">Fajar sipil</span><span class="s-val" id="civil-dawn">—</span></div>
+          <div class="stat"><span class="s-label">Senja sipil</span><span class="s-val" id="civil-dusk">—</span></div>
+        </div>
+        <p class="fineprint">Data: <a href="https://aa.usno.navy.mil/" target="_blank" rel="noopener">US Naval Observatory</a> — ephemeris resmi, bukan estimasi. Senja sipil menandai batas cahaya alami masih cukup untuk beraktivitas tanpa lampu.</p>
+      </section>
+
       <!-- Perbandingan model -->
       <section class="card" id="model-card">
         <h2>Perbandingan model resmi <span class="h-sub">suhu 48 jam</span></h2>

@@ -69,6 +69,15 @@ Aplikasi menyegarkan data otomatis tiap 10 menit.
   meteorologi klasik: penurunan tajam sering mendahului cuaca aktif, kenaikan tajam
   biasanya menandai cuaca membaik — indikasi, bukan prakiraan pasti.
 
+## Langit malam: bulan & senja
+
+- **Fase bulan** — nama fase, persentase tersinari, dan ikon bulan yang bentuknya
+  mengikuti fase sesungguhnya (sabit, kuartal, cembung, purnama).
+- **Bulan terbit/terbenam** dan **senja sipil** (fajar & senja, batas cahaya alami
+  masih cukup tanpa lampu).
+- Sumber: [US Naval Observatory](https://aa.usno.navy.mil/) — ephemeris resmi pemerintah
+  AS, bukan rumus perkiraan. Diuji cocok dengan referensi hingga level menit/persen.
+
 ## Cara pakai
 
 Buka `index.html` di browser. Tanpa install wajib, tanpa API key. Butuh koneksi internet

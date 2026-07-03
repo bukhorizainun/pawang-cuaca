@@ -630,6 +630,73 @@ async function loadPressureTrend(place) {
   }
 }
 
+/* ===================== bulan & senja (US Naval Observatory) ===================== */
+
+const USNO_API = "https://aa.usno.navy.mil/api/rstt/oneday";
+
+const MOON_PHASE_ID = {
+  "New Moon": "Bulan Baru",
+  "Waxing Crescent": "Sabit Muda",
+  "First Quarter": "Kuartal Pertama",
+  "Waxing Gibbous": "Cembung Bertambah",
+  "Full Moon": "Bulan Purnama",
+  "Waning Gibbous": "Cembung Berkurang",
+  "Last Quarter": "Kuartal Ketiga",
+  "Waning Crescent": "Sabit Tua"
+};
+const MOON_WAXING_PHASES = ["New Moon", "Waxing Crescent", "First Quarter", "Waxing Gibbous"];
+
+function findPhen(list, name) {
+  const hit = (list || []).find(x => x.phen === name);
+  return hit ? hit.time : null;
+}
+
+function renderMoonIcon(container, k, waxing) {
+  const LIGHT = "#e8ecf2", DARK = "#1a2230";
+  const brightSide = waxing ? "right" : "left";
+  const darkSide = waxing ? "left" : "right";
+  let bg, halfSide, halfColor, termColor, termScale;
+  if (k <= 0.5) {
+    bg = DARK; halfSide = brightSide; halfColor = LIGHT; termColor = DARK; termScale = 1 - 2 * k;
+  } else {
+    bg = LIGHT; halfSide = darkSide; halfColor = DARK; termColor = LIGHT; termScale = 2 * k - 1;
+  }
+  container.style.background = bg;
+  container.innerHTML =
+    `<div class="moon-half" style="${halfSide}:0; background:${halfColor}"></div>` +
+    `<div class="moon-term" style="background:${termColor}; transform:scaleX(${termScale})"></div>`;
+}
+
+async function loadAstro(place) {
+  const card = $("astro-card");
+  try {
+    const localNow = new Date((Math.floor(Date.now() / 1000) + currentUtcOffset) * 1000);
+    const dateStr = localNow.toISOString().slice(0, 10);
+    const tzHours = currentUtcOffset / 3600;
+
+    const data = await fetchJson(
+      `${USNO_API}?date=${dateStr}&coords=${place.latitude},${place.longitude}&tz=${tzHours.toFixed(2)}`);
+    const d = data.properties.data;
+    const moon = d.moondata, sun = d.sundata;
+
+    const k = parseFloat(d.fracillum) / 100;
+    const waxing = MOON_WAXING_PHASES.includes(d.curphase);
+
+    renderMoonIcon($("moon-icon"), isNaN(k) ? 0.5 : k, waxing);
+    $("moon-phase-name").textContent = MOON_PHASE_ID[d.curphase] || d.curphase;
+    $("moon-illum").textContent = (d.fracillum || "—") + " tersinari";
+
+    $("moon-rise").textContent = findPhen(moon, "Rise") || "tidak terbit hari ini";
+    $("moon-set").textContent = findPhen(moon, "Set") || "tidak terbenam hari ini";
+    $("civil-dawn").textContent = findPhen(sun, "Begin Civil Twilight") || "—";
+    $("civil-dusk").textContent = findPhen(sun, "End Civil Twilight") || "—";
+
+    card.hidden = false;
+  } catch (err) {
+    card.hidden = true;
+  }
+}
+
 /* ===================== kota favorit ===================== */
 
 const FAVORITES_KEY = "pawang-cuaca:favorites";
@@ -781,6 +848,7 @@ async function loadWeather(place) {
   loadAirQuality(place);
   loadRadar(place);
   loadPressureTrend(place);
+  loadAstro(place);
   checkRainAlert(mainRes.value, place);
   updateFavoriteBtn();
   renderFavoritesStrip();
