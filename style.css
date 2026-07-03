@@ -63,6 +63,7 @@ body.w-fog         { --glow: rgba(138,148,166,0.12); }
   flex-wrap: wrap;
   margin-bottom: 22px;
 }
+.brand-top { display: flex; align-items: center; gap: 12px; }
 .brand h1 {
   font-size: 1.15rem;
   font-weight: 650;
@@ -70,6 +71,26 @@ body.w-fog         { --glow: rgba(138,148,166,0.12); }
   letter-spacing: 0.22em;
 }
 .brand .tagline { color: var(--dim); font-size: 0.82rem; margin-top: 4px; }
+
+.lang-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.lang-btn {
+  padding: 3px 10px;
+  font-size: 0.7rem;
+  font-weight: 650;
+  font-family: inherit;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.lang-btn:hover { color: var(--dim); }
+.lang-btn.active { background: var(--card-2); color: var(--amber); }
 
 .search-area { flex: 1 1 320px; max-width: 420px; }
 

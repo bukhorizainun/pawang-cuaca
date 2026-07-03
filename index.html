@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pawang Cuaca — Prakiraan Multi-Model</title>
-  <meta name="description" content="Prakiraan cuaca sedunia berbasis model resmi ECMWF, NOAA GFS, dan DWD ICON. Dibawakan dengan serius. Hampir.">
+  <title id="page-title">Pawang Cuaca — Prakiraan Multi-Model</title>
+  <meta id="page-desc" name="description" content="Prakiraan cuaca sedunia berbasis model resmi ECMWF, NOAA GFS, dan DWD ICON. Dibawakan dengan serius. Hampir.">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0d1117">
@@ -22,19 +22,25 @@
 
     <header class="masthead">
       <div class="brand">
-        <h1>Pawang Cuaca</h1>
-        <p class="tagline">Prakiraan multi-model — dibawakan dengan serius. Hampir.</p>
+        <div class="brand-top">
+          <h1>Pawang Cuaca</h1>
+          <div class="lang-toggle" id="lang-toggle">
+            <button class="lang-btn" data-lang="id" type="button">ID</button>
+            <button class="lang-btn" data-lang="en" type="button">EN</button>
+          </div>
+        </div>
+        <p class="tagline" data-i18n="tagline">Prakiraan multi-model — dibawakan dengan serius. Hampir.</p>
       </div>
       <div class="search-area">
         <div class="search-input-wrap">
-          <input id="search-input" type="text" placeholder="Cari kota — Jakarta, Yogyakarta, Linz…" autocomplete="off" spellcheck="false">
+          <input id="search-input" type="text" data-i18n-placeholder="searchPlaceholder" placeholder="Cari kota — Jakarta, Yogyakarta, Linz…" autocomplete="off" spellcheck="false">
           <div id="search-results" class="search-results" hidden></div>
         </div>
         <div class="quick-chips">
           <button class="chip" data-quick="linz">Linz</button>
           <button class="chip" data-quick="jakarta">Jakarta</button>
           <button class="chip" data-quick="yogyakarta">Yogyakarta</button>
-          <button class="chip" id="geo-btn">Lokasi saya</button>
+          <button class="chip" id="geo-btn" data-i18n="myLocation">Lokasi saya</button>
         </div>
       </div>
     </header>
@@ -51,13 +57,13 @@
           <div>
             <div class="place-row">
               <span class="place" id="place-line">—</span>
-              <button id="favorite-btn" class="fav-toggle" type="button" title="Tambah ke favorit">☆</button>
+              <button id="favorite-btn" class="fav-toggle" type="button" data-i18n-title="favoriteAdd" title="Tambah ke favorit">☆</button>
             </div>
             <div class="local-time" id="local-time"></div>
           </div>
           <div class="meta-right">
             <span class="updated" id="updated-at"></span>
-            <button id="refresh-btn" class="btn-ghost">Perbarui</button>
+            <button id="refresh-btn" class="btn-ghost" data-i18n="refresh">Perbarui</button>
           </div>
         </div>
 
@@ -66,36 +72,36 @@
           <div class="hero-temp"><span id="cur-temp">--</span><span class="unit">°C</span></div>
           <div class="hero-desc">
             <div class="desc-text" id="cur-desc">—</div>
-            <div class="feels">Terasa seperti <span id="cur-feels">--</span>°C</div>
+            <div class="feels" id="feels-line">—</div>
           </div>
         </div>
 
         <div class="stats">
-          <div class="stat"><span class="s-label">Kelembapan</span><span class="s-val" id="cur-hum">—</span></div>
-          <div class="stat"><span class="s-label">Angin</span><span class="s-val" id="cur-wind">—</span></div>
-          <div class="stat"><span class="s-label">Hembusan</span><span class="s-val" id="cur-gust">—</span></div>
-          <div class="stat"><span class="s-label">Tutupan awan</span><span class="s-val" id="cur-cloud">—</span></div>
-          <div class="stat"><span class="s-label">Presipitasi</span><span class="s-val" id="cur-precip">—</span></div>
-          <div class="stat"><span class="s-label">Tekanan</span><span class="s-val" id="cur-press">—</span><span class="s-trend" id="cur-press-trend"></span></div>
-          <div class="stat"><span class="s-label">Indeks UV maks</span><span class="s-val" id="cur-uv">—</span></div>
-          <div class="stat"><span class="s-label">Matahari</span><span class="s-val" id="cur-sun">—</span></div>
+          <div class="stat"><span class="s-label" data-i18n="statHumidity">Kelembapan</span><span class="s-val" id="cur-hum">—</span></div>
+          <div class="stat"><span class="s-label" data-i18n="statWind">Angin</span><span class="s-val" id="cur-wind">—</span></div>
+          <div class="stat"><span class="s-label" data-i18n="statGust">Hembusan</span><span class="s-val" id="cur-gust">—</span></div>
+          <div class="stat"><span class="s-label" data-i18n="statCloud">Tutupan awan</span><span class="s-val" id="cur-cloud">—</span></div>
+          <div class="stat"><span class="s-label" data-i18n="statPrecip">Presipitasi</span><span class="s-val" id="cur-precip">—</span></div>
+          <div class="stat"><span class="s-label" data-i18n="statPressure">Tekanan</span><span class="s-val" id="cur-press">—</span><span class="s-trend" id="cur-press-trend"></span></div>
+          <div class="stat"><span class="s-label" data-i18n="statUv">Indeks UV maks</span><span class="s-val" id="cur-uv">—</span></div>
+          <div class="stat"><span class="s-label" data-i18n="statSun">Matahari</span><span class="s-val" id="cur-sun">—</span></div>
         </div>
         <p class="fineprint" id="press-trend-note" hidden></p>
       </section>
 
       <!-- Catatan Mbah -->
       <section class="note-card">
-        <span class="note-label">Catatan Mbah</span>
+        <span class="note-label" data-i18n="mbahLabel">Catatan Mbah</span>
         <p class="note-text" id="wejangan">…</p>
       </section>
 
       <!-- Kualitas udara -->
       <section class="card" id="aqi-card" hidden>
-        <h2>Kualitas udara <span class="h-sub">saat ini</span></h2>
+        <h2><span data-i18n="aqiTitle">Kualitas udara</span> <span class="h-sub" data-i18n="current">saat ini</span></h2>
         <div class="aqi-main">
           <div class="aqi-badge" id="aqi-badge">
             <span class="aqi-num" id="aqi-num">--</span>
-            <span class="aqi-scale">AQI AS</span>
+            <span class="aqi-scale" data-i18n="aqiScale">AQI AS</span>
           </div>
           <div class="aqi-info">
             <div class="aqi-label" id="aqi-label">—</div>
@@ -103,56 +109,56 @@
           </div>
         </div>
         <div class="aqi-pollutants" id="aqi-pollutants"></div>
-        <p class="fineprint">Skala AQI AS (EPA): 0–50 baik, 51–100 sedang, 101–150 tidak sehat untuk kelompok sensitif, 151–200 tidak sehat, 201–300 sangat tidak sehat, 301+ berbahaya. Berguna terutama saat musim kabut asap.</p>
+        <p class="fineprint" data-i18n="aqiFineprint">Skala AQI AS (EPA): 0–50 baik, 51–100 sedang, 101–150 tidak sehat untuk kelompok sensitif, 151–200 tidak sehat, 201–300 sangat tidak sehat, 301+ berbahaya. Berguna terutama saat musim kabut asap.</p>
       </section>
 
       <!-- Radar hujan -->
       <section class="card" id="radar-card" hidden>
-        <h2>Radar hujan <span class="h-sub">2 jam terakhir</span></h2>
+        <h2><span data-i18n="radarTitle">Radar hujan</span> <span class="h-sub" data-i18n="radarSub">2 jam terakhir</span></h2>
         <div id="radar-map"></div>
         <div class="radar-controls">
-          <button id="radar-play" class="btn-ghost" type="button">▶ Putar</button>
+          <button id="radar-play" class="btn-ghost" type="button">▶</button>
           <input id="radar-slider" type="range" min="0" max="0" value="0" step="1">
           <span class="radar-time" id="radar-time">—</span>
         </div>
-        <p class="fineprint">Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> (mosaik radar cuaca dunia, diisi estimasi satelit di wilayah tanpa radar darat) · peta dasar © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Kepadatan cakupan bervariasi per wilayah.</p>
+        <p class="fineprint" data-i18n-html="radarFineprintHtml">Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> (mosaik radar cuaca dunia, diisi estimasi satelit di wilayah tanpa radar darat) · peta dasar © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Kepadatan cakupan bervariasi per wilayah.</p>
       </section>
 
       <!-- Observasi stasiun -->
       <section class="card" id="obs-card" hidden>
-        <h2>Observasi stasiun <span class="h-sub">pengukuran langsung, bukan model</span></h2>
+        <h2><span data-i18n="obsTitle">Observasi stasiun</span> <span class="h-sub" data-i18n="obsSub">pengukuran langsung, bukan model</span></h2>
         <div class="obs-grid">
           <div class="obs-panel" id="obs-geo" hidden>
-            <div class="obs-head"><span class="obs-src">GeoSphere Austria · TAWES 10 menit</span><span class="obs-age" id="geo-age"></span></div>
+            <div class="obs-head"><span class="obs-src" data-i18n="obsGeoSrc">GeoSphere Austria · TAWES 10 menit</span><span class="obs-age" id="geo-age"></span></div>
             <div class="obs-station" id="geo-station">—</div>
             <div class="obs-stats" id="geo-stats"></div>
           </div>
           <div class="obs-panel" id="obs-metar" hidden>
-            <div class="obs-head"><span class="obs-src">METAR bandara · arsip MET Norway</span><span class="obs-age" id="metar-age"></span></div>
+            <div class="obs-head"><span class="obs-src" data-i18n="obsMetarSrc">METAR bandara · arsip MET Norway</span><span class="obs-age" id="metar-age"></span></div>
             <div class="obs-station" id="metar-station">—</div>
             <div class="obs-stats" id="metar-stats"></div>
             <div class="obs-raw" id="metar-raw"></div>
           </div>
         </div>
-        <p class="fineprint">Observasi adalah pengukuran nyata di stasiun — pembanding paling jujur untuk keluaran model. TAWES: jaringan stasiun otomatis GeoSphere Austria (eks ZAMG), tersedia bila lokasi di Austria. METAR: laporan resmi stasiun meteorologi bandara, umumnya tiap 30–60 menit, mencakup bandara Indonesia dan dunia.</p>
+        <p class="fineprint" data-i18n="obsFineprint">Observasi adalah pengukuran nyata di stasiun — pembanding paling jujur untuk keluaran model. TAWES: jaringan stasiun otomatis GeoSphere Austria (eks ZAMG), tersedia bila lokasi di Austria. METAR: laporan resmi stasiun meteorologi bandara, umumnya tiap 30–60 menit, mencakup bandara Indonesia dan dunia.</p>
       </section>
 
       <!-- 24 jam -->
       <section class="card">
-        <h2>24 jam ke depan <span class="h-sub">suhu &amp; peluang hujan</span></h2>
+        <h2><span data-i18n="hourlyTitle">24 jam ke depan</span> <span class="h-sub" data-i18n="hourlySub">suhu &amp; peluang hujan</span></h2>
         <div class="chart-wrap"><canvas id="hourly-chart"></canvas></div>
         <div id="hourly-strip" class="hourly-strip"></div>
       </section>
 
       <!-- 7 hari -->
       <section class="card">
-        <h2>7 hari ke depan</h2>
+        <h2 data-i18n="dailyTitle">7 hari ke depan</h2>
         <div id="daily-list" class="daily-list"></div>
       </section>
 
       <!-- Langit malam: bulan & senja -->
       <section class="card" id="astro-card" hidden>
-        <h2>Langit malam <span class="h-sub">bulan &amp; senja</span></h2>
+        <h2><span data-i18n="astroTitle">Langit malam</span> <span class="h-sub" data-i18n="astroSub">bulan &amp; senja</span></h2>
         <div class="astro-main">
           <div class="moon-disc" id="moon-icon"></div>
           <div class="astro-moon-info">
@@ -161,36 +167,36 @@
           </div>
         </div>
         <div class="astro-stats">
-          <div class="stat"><span class="s-label">Bulan terbit</span><span class="s-val" id="moon-rise">—</span></div>
-          <div class="stat"><span class="s-label">Bulan terbenam</span><span class="s-val" id="moon-set">—</span></div>
-          <div class="stat"><span class="s-label">Fajar sipil</span><span class="s-val" id="civil-dawn">—</span></div>
-          <div class="stat"><span class="s-label">Senja sipil</span><span class="s-val" id="civil-dusk">—</span></div>
+          <div class="stat"><span class="s-label" data-i18n="moonRise">Bulan terbit</span><span class="s-val" id="moon-rise">—</span></div>
+          <div class="stat"><span class="s-label" data-i18n="moonSet">Bulan terbenam</span><span class="s-val" id="moon-set">—</span></div>
+          <div class="stat"><span class="s-label" data-i18n="civilDawn">Fajar sipil</span><span class="s-val" id="civil-dawn">—</span></div>
+          <div class="stat"><span class="s-label" data-i18n="civilDusk">Senja sipil</span><span class="s-val" id="civil-dusk">—</span></div>
         </div>
-        <p class="fineprint">Data: <a href="https://aa.usno.navy.mil/" target="_blank" rel="noopener">US Naval Observatory</a> — ephemeris resmi, bukan estimasi. Senja sipil menandai batas cahaya alami masih cukup untuk beraktivitas tanpa lampu.</p>
+        <p class="fineprint" data-i18n-html="astroFineprintHtml">Data: <a href="https://aa.usno.navy.mil/" target="_blank" rel="noopener">US Naval Observatory</a> — ephemeris resmi, bukan estimasi. Senja sipil menandai batas cahaya alami masih cukup untuk beraktivitas tanpa lampu.</p>
       </section>
 
       <!-- Perbandingan model -->
       <section class="card" id="model-card">
-        <h2>Perbandingan model resmi <span class="h-sub">suhu 48 jam</span></h2>
+        <h2><span data-i18n="modelTitle">Perbandingan model resmi</span> <span class="h-sub" data-i18n="modelSub">suhu 48 jam</span></h2>
         <div class="legend">
-          <span class="lg"><i class="dot dot-ecmwf"></i>ECMWF <em>Uni Eropa</em></span>
-          <span class="lg"><i class="dot dot-gfs"></i>GFS <em>NOAA, AS</em></span>
-          <span class="lg"><i class="dot dot-icon"></i>ICON <em>DWD, Jerman</em></span>
+          <span class="lg"><i class="dot dot-ecmwf"></i>ECMWF <em data-i18n="legendEcmwf">Uni Eropa</em></span>
+          <span class="lg"><i class="dot dot-gfs"></i>GFS <em data-i18n="legendGfs">NOAA, AS</em></span>
+          <span class="lg"><i class="dot dot-icon"></i>ICON <em data-i18n="legendIcon">DWD, Jerman</em></span>
         </div>
         <div class="chart-wrap"><canvas id="model-chart"></canvas></div>
         <p class="model-verdict" id="model-verdict"></p>
-        <p class="fineprint">Prakiraan utama memakai kombinasi <em>best match</em>: model nasional beresolusi tertinggi untuk lokasi terpilih (mis. ICON-D2 ±2 km untuk Austria), diperbarui tiap 1–6 jam. Panel ini membandingkan tiga model global utama — bila kurvanya rapat, dunia sedang sepakat.</p>
+        <p class="fineprint" data-i18n-html="modelFineprintHtml">Prakiraan utama memakai kombinasi <em>best match</em>: model nasional beresolusi tertinggi untuk lokasi terpilih (mis. ICON-D2 ±2 km untuk Austria), diperbarui tiap 1–6 jam. Panel ini membandingkan tiga model global utama — bila kurvanya rapat, dunia sedang sepakat.</p>
       </section>
 
     </main>
 
     <footer>
       <div class="app-actions">
-        <button id="install-btn" class="btn-ghost" type="button" hidden>Pasang sebagai aplikasi</button>
+        <button id="install-btn" class="btn-ghost" type="button" hidden data-i18n="installBtn">Pasang sebagai aplikasi</button>
         <button id="notify-btn" class="btn-ghost" type="button" hidden>Ingatkan kalau mau hujan</button>
       </div>
-      <p class="credit">Data: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> — agregasi model resmi ECMWF · NOAA · DWD · Météo-France · dan lainnya. Diperbarui otomatis tiap 10 menit. Mbah hanya perantara yang bertanggung jawab.</p>
-      <p class="fineprint">Notifikasi hujan berjalan selagi aplikasi terbuka (diperiksa tiap penyegaran, ±10 menit) dan bila terpasang sebagai aplikasi, sebagian browser (terutama Chrome desktop/Android) bisa menjalankannya secara berkala di latar belakang. Dukungan latar-belakang penuh bergantung kebijakan tiap browser dan OS.</p>
+      <p class="credit" data-i18n-html="footerCreditHtml">Data: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> — agregasi model resmi ECMWF · NOAA · DWD · Météo-France · dan lainnya. Diperbarui otomatis tiap 10 menit. Mbah hanya perantara yang bertanggung jawab.</p>
+      <p class="fineprint" data-i18n="footerFineprint">Notifikasi hujan berjalan selagi aplikasi terbuka (diperiksa tiap penyegaran, ±10 menit) dan bila terpasang sebagai aplikasi, sebagian browser (terutama Chrome desktop/Android) bisa menjalankannya secara berkala di latar belakang. Dukungan latar-belakang penuh bergantung kebijakan tiap browser dan OS.</p>
     </footer>
 
   </div>

@@ -78,6 +78,15 @@ Aplikasi menyegarkan data otomatis tiap 10 menit.
 - Sumber: [US Naval Observatory](https://aa.usno.navy.mil/) — ephemeris resmi pemerintah
   AS, bukan rumus perkiraan. Diuji cocok dengan referensi hingga level menit/persen.
 
+## Dwibahasa (ID/EN)
+
+Toggle "ID / EN" di kanan judul mengganti seluruh antarmuka — termasuk teks yang
+dibuat dinamis oleh JavaScript (deskripsi cuaca, wejangan Mbah, nama hari/bulan,
+label observasi, fase bulan, dll), bukan cuma label statis. Bahasa default mengikuti
+bahasa browser pengunjung saat kunjungan pertama, lalu pilihan manual disimpan dan
+diingat untuk kunjungan berikutnya. Pencarian kota juga mengikuti bahasa aktif
+(nama tempat dari Open-Meteo geocoding).
+
 ## Cara pakai
 
 Buka `index.html` di browser. Tanpa install wajib, tanpa API key. Butuh koneksi internet

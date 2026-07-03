@@ -16,23 +16,200 @@ const QUICK_PLACES = {
   yogyakarta: { name: "Yogyakarta", admin1: "", country: "Indonesia", country_code: "ID", latitude: -7.8014, longitude: 110.3647 }
 };
 
-/* Deskripsi kode cuaca WMO */
-const WMO_TEXT = {
-  0: "Cerah", 1: "Cerah berawan", 2: "Berawan sebagian", 3: "Mendung",
-  45: "Kabut", 48: "Kabut beku",
-  51: "Gerimis ringan", 53: "Gerimis", 55: "Gerimis lebat",
-  56: "Gerimis beku", 57: "Gerimis beku lebat",
-  61: "Hujan ringan", 63: "Hujan sedang", 65: "Hujan lebat",
-  66: "Hujan beku", 67: "Hujan beku lebat",
-  71: "Salju ringan", 73: "Salju sedang", 75: "Salju lebat", 77: "Butiran salju",
-  80: "Hujan lokal ringan", 81: "Hujan lokal sedang", 82: "Hujan lokal deras",
-  85: "Salju lokal ringan", 86: "Salju lokal lebat",
-  95: "Badai petir", 96: "Badai petir, hujan es", 99: "Badai petir, hujan es lebat"
+/* ===================== bahasa (ID/EN) ===================== */
+
+const LANG_KEY = "pawang-cuaca:lang";
+let lang = "id";
+try {
+  const savedLang = localStorage.getItem(LANG_KEY);
+  if (savedLang === "id" || savedLang === "en") lang = savedLang;
+  else if (navigator.language && navigator.language.toLowerCase().startsWith("en")) lang = "en";
+} catch (e) { /* abaikan */ }
+
+/* Kamus UI statis + template teks dinamis */
+const UI = {
+  id: {
+    pageTitle: "Pawang Cuaca — Prakiraan Multi-Model",
+    pageDesc: "Prakiraan cuaca sedunia berbasis model resmi ECMWF, NOAA GFS, dan DWD ICON. Dibawakan dengan serius. Hampir.",
+    tagline: "Prakiraan multi-model — dibawakan dengan serius. Hampir.",
+    searchPlaceholder: "Cari kota — Jakarta, Yogyakarta, Linz…",
+    myLocation: "Lokasi saya",
+    refresh: "Perbarui",
+    statHumidity: "Kelembapan", statWind: "Angin", statGust: "Hembusan", statCloud: "Tutupan awan",
+    statPrecip: "Presipitasi", statPressure: "Tekanan", statUv: "Indeks UV maks", statSun: "Matahari",
+    feelsLike: "Terasa seperti",
+    mbahLabel: "Catatan Mbah",
+    aqiTitle: "Kualitas udara", current: "saat ini", aqiScale: "AQI AS",
+    aqiFineprint: "Skala AQI AS (EPA): 0–50 baik, 51–100 sedang, 101–150 tidak sehat untuk kelompok sensitif, 151–200 tidak sehat, 201–300 sangat tidak sehat, 301+ berbahaya. Berguna terutama saat musim kabut asap.",
+    radarTitle: "Radar hujan", radarSub: "2 jam terakhir",
+    radarFineprintHtml: 'Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> (mosaik radar cuaca dunia, diisi estimasi satelit di wilayah tanpa radar darat) · peta dasar © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Kepadatan cakupan bervariasi per wilayah.',
+    obsTitle: "Observasi stasiun", obsSub: "pengukuran langsung, bukan model",
+    obsGeoSrc: "GeoSphere Austria · TAWES 10 menit", obsMetarSrc: "METAR bandara · arsip MET Norway",
+    obsFineprint: "Observasi adalah pengukuran nyata di stasiun — pembanding paling jujur untuk keluaran model. TAWES: jaringan stasiun otomatis GeoSphere Austria (eks ZAMG), tersedia bila lokasi di Austria. METAR: laporan resmi stasiun meteorologi bandara, umumnya tiap 30–60 menit, mencakup bandara Indonesia dan dunia.",
+    hourlyTitle: "24 jam ke depan", hourlySub: "suhu & peluang hujan",
+    dailyTitle: "7 hari ke depan", today: "Hari ini",
+    astroTitle: "Langit malam", astroSub: "bulan & senja",
+    moonRise: "Bulan terbit", moonSet: "Bulan terbenam", civilDawn: "Fajar sipil", civilDusk: "Senja sipil",
+    moonNoRise: "tidak terbit hari ini", moonNoSet: "tidak terbenam hari ini", tersinari: "tersinari",
+    astroFineprintHtml: 'Data: <a href="https://aa.usno.navy.mil/" target="_blank" rel="noopener">US Naval Observatory</a> — ephemeris resmi, bukan estimasi. Senja sipil menandai batas cahaya alami masih cukup untuk beraktivitas tanpa lampu.',
+    modelTitle: "Perbandingan model resmi", modelSub: "suhu 48 jam",
+    legendEcmwf: "Uni Eropa", legendGfs: "NOAA, AS", legendIcon: "DWD, Jerman",
+    modelFineprintHtml: 'Prakiraan utama memakai kombinasi <em>best match</em>: model nasional beresolusi tertinggi untuk lokasi terpilih (mis. ICON-D2 ±2 km untuk Austria), diperbarui tiap 1–6 jam. Panel ini membandingkan tiga model global utama — bila kurvanya rapat, dunia sedang sepakat.',
+    installBtn: "Pasang sebagai aplikasi",
+    notifyOff: "Ingatkan kalau mau hujan", notifyOn: "Notifikasi hujan: aktif",
+    footerCreditHtml: 'Data: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> — agregasi model resmi ECMWF · NOAA · DWD · Météo-France · dan lainnya. Diperbarui otomatis tiap 10 menit. Mbah hanya perantara yang bertanggung jawab.',
+    footerFineprint: "Notifikasi hujan berjalan selagi aplikasi terbuka (diperiksa tiap penyegaran, ±10 menit) dan bila terpasang sebagai aplikasi, sebagian browser (terutama Chrome desktop/Android) bisa menjalankannya secara berkala di latar belakang. Dukungan latar-belakang penuh bergantung kebijakan tiap browser dan OS.",
+    favoriteAdd: "Tambah ke favorit", favoriteRemove: "Hapus dari favorit", favoriteRemoveAria: "Hapus favorit",
+    searchEmpty: "Kota tidak ditemukan dalam terawangan. Coba ejaan lain?",
+    updatedAt: "Diperbarui", localTimeAt: "waktu setempat",
+    geoSearching: "Mencari stasiun terdekat…", metarSearching: "Mencari bandara terdekat…",
+    geoUnavailable: "Stasiun GeoSphere sedang tidak bisa dihubungi", metarNoAirport: "Tidak ada bandara ber-METAR dalam radius 500 km dari titik ini.",
+    metarUnavailable: "METAR bandara terdekat sedang tidak tersedia.",
+    findingLocation: "Mencari posisimu…",
+    geoDenied: "Akses lokasi ditolak atau tidak tersedia (file lokal kadang diblokir browser). Silakan cari kota manual.",
+    geoUnsupported: "Browser ini tidak mendukung geolokasi. Silakan cari kota secara manual.",
+    yourLocation: "Lokasi kamu",
+    statTemp: "Suhu udara", statDew: "Titik embun", statWindKv: "Angin", statGustKv: "Hembusan",
+    statPressMsl: "Tekanan (MSL)", statRain10: "Hujan 10 mnt", statDelta: "Selisih vs model",
+    statVisibility: "Visibilitas", statPhenomena: "Fenomena", statCloudKv: "Awan", statPressQnh: "Tekanan (QNH)",
+    cavokInsignificant: "tidak signifikan (CAVOK)", variableWind: "variabel",
+    justNow: "baru saja", kmh: "km/j", masl: "m dpl", pressureUnit3h: "hPa/3j", pressureTrendPrefix: "Tren tekanan:",
+    verdictTight: n => `Ketiga model sedang kompak — selisih maksimum ${n} °C dalam 24 jam ke depan. Prakiraan ini boleh dipegang.`,
+    verdictOk: n => `Model-model besar cukup akur (selisih maksimum ${n} °C). Wajar, namanya juga meramal masa depan.`,
+    verdictSpread: n => `Para model sedang berbeda pendapat, selisihnya sampai ${n} °C. Masa depan memang sulit; siapkan rencana cadangan.`,
+    scanning: p => `Menerawang langit ${p}…`,
+    scanFailed: m => `Terawangan buyar: ${m}. Periksa koneksi, lalu coba lagi.`,
+    minAgo: m => `${m} mnt lalu`,
+    hAgo: (h, m) => `${h} j ${m} mnt lalu`,
+    rainNotifBody: (prob, place) => `Peluang hujan ${prob}% dalam 2 jam ke depan di ${place}. Payung, kawan.`,
+    localTimeLine: (hari, tgl, jam, tz) => `${hari}, ${tgl} · ${jam} ${UI.id.localTimeAt} (${tz})`,
+    feelsLine: v => `${UI.id.feelsLike} ${v}°C`
+  },
+  en: {
+    pageTitle: "Pawang Cuaca — Multi-Model Forecast",
+    pageDesc: "Worldwide weather forecasting built on official ECMWF, NOAA GFS, and DWD ICON models. Delivered with a straight face. Almost.",
+    tagline: "Multi-model forecasting — delivered with a straight face. Almost.",
+    searchPlaceholder: "Search a city — Jakarta, Yogyakarta, Linz…",
+    myLocation: "My location",
+    refresh: "Refresh",
+    statHumidity: "Humidity", statWind: "Wind", statGust: "Gusts", statCloud: "Cloud cover",
+    statPrecip: "Precipitation", statPressure: "Pressure", statUv: "Max UV index", statSun: "Sun",
+    feelsLike: "Feels like",
+    mbahLabel: "Mbah's Note",
+    aqiTitle: "Air quality", current: "right now", aqiScale: "US AQI",
+    aqiFineprint: "US AQI (EPA) scale: 0–50 good, 51–100 moderate, 101–150 unhealthy for sensitive groups, 151–200 unhealthy, 201–300 very unhealthy, 301+ hazardous. Especially useful during haze season.",
+    radarTitle: "Rain radar", radarSub: "last 2 hours",
+    radarFineprintHtml: 'Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> (worldwide radar mosaic, filled with satellite estimates where ground radar is absent) · base map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Coverage density varies by region.',
+    obsTitle: "Station observations", obsSub: "real measurements, not model output",
+    obsGeoSrc: "GeoSphere Austria · TAWES 10-min", obsMetarSrc: "Airport METAR · MET Norway archive",
+    obsFineprint: "Observations are real measurements at a station — the most honest check on model output. TAWES: GeoSphere Austria's automatic station network (formerly ZAMG), available when the location is in Austria. METAR: official airport weather station reports, usually every 30–60 minutes, covering Indonesian and worldwide airports.",
+    hourlyTitle: "Next 24 hours", hourlySub: "temperature & rain chance",
+    dailyTitle: "7-day forecast", today: "Today",
+    astroTitle: "Night sky", astroSub: "moon & twilight",
+    moonRise: "Moonrise", moonSet: "Moonset", civilDawn: "Civil dawn", civilDusk: "Civil dusk",
+    moonNoRise: "does not rise today", moonNoSet: "does not set today", tersinari: "illuminated",
+    astroFineprintHtml: 'Data: <a href="https://aa.usno.navy.mil/" target="_blank" rel="noopener">US Naval Observatory</a> — official ephemeris, not an estimate. Civil twilight marks the point where natural light is no longer enough for activity without artificial light.',
+    modelTitle: "Official model comparison", modelSub: "48-hour temperature",
+    legendEcmwf: "European Union", legendGfs: "NOAA, US", legendIcon: "DWD, Germany",
+    modelFineprintHtml: 'The main forecast uses <em>best match</em>: the highest-resolution national model available for the chosen location (e.g. ICON-D2 ±2 km for Austria), updated every 1–6 hours. This panel compares the three major global models — when the curves sit close together, the world agrees.',
+    installBtn: "Install as an app",
+    notifyOff: "Alert me before it rains", notifyOn: "Rain alerts: on",
+    footerCreditHtml: 'Data: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> — an aggregation of official ECMWF · NOAA · DWD · Météo-France models and more. Auto-refreshes every 10 minutes. Mbah is just a responsible middleman.',
+    footerFineprint: "Rain alerts run while the app is open (checked on every refresh, ±10 min); once installed as an app, some browsers (mainly Chrome desktop/Android) can also check periodically in the background. Full background support depends on each browser's and OS's policy.",
+    favoriteAdd: "Add to favorites", favoriteRemove: "Remove from favorites", favoriteRemoveAria: "Remove favorite",
+    searchEmpty: "No city found in the forecast. Try a different spelling?",
+    updatedAt: "Updated", localTimeAt: "local time",
+    geoSearching: "Finding nearest station…", metarSearching: "Finding nearest airport…",
+    geoUnavailable: "GeoSphere station is currently unreachable", metarNoAirport: "No METAR airport within 500 km of this point.",
+    metarUnavailable: "Nearest METAR airport is currently unavailable.",
+    findingLocation: "Finding your position…",
+    geoDenied: "Location access denied or unavailable (browsers sometimes block this on local files). Please search for a city manually.",
+    geoUnsupported: "This browser doesn't support geolocation. Please search for a city manually.",
+    yourLocation: "Your location",
+    statTemp: "Air temperature", statDew: "Dew point", statWindKv: "Wind", statGustKv: "Gusts",
+    statPressMsl: "Pressure (MSL)", statRain10: "10-min rain", statDelta: "Diff vs. model",
+    statVisibility: "Visibility", statPhenomena: "Phenomena", statCloudKv: "Clouds", statPressQnh: "Pressure (QNH)",
+    cavokInsignificant: "not significant (CAVOK)", variableWind: "variable",
+    justNow: "just now", kmh: "km/h", masl: "m asl", pressureUnit3h: "hPa/3h", pressureTrendPrefix: "Pressure trend:",
+    verdictTight: n => `All three models are in close agreement — a maximum spread of ${n} °C over the next 24 hours. This forecast can be trusted.`,
+    verdictOk: n => `The major models are reasonably close (max spread ${n} °C). Fair enough — predicting the future isn't easy.`,
+    verdictSpread: n => `The models disagree, with a spread of up to ${n} °C. The future is genuinely uncertain here; keep a backup plan.`,
+    scanning: p => `Scanning the skies over ${p}…`,
+    scanFailed: m => `The forecast fell apart: ${m}. Check your connection and try again.`,
+    minAgo: m => `${m} min ago`,
+    hAgo: (h, m) => `${h}h ${m}m ago`,
+    rainNotifBody: (prob, place) => `${prob}% chance of rain in the next 2 hours in ${place}. Grab an umbrella.`,
+    localTimeLine: (hari, tgl, jam, tz) => `${hari}, ${tgl} · ${jam} ${UI.en.localTimeAt} (${tz})`,
+    feelsLine: v => `${UI.en.feelsLike} ${v}°C`
+  }
 };
 
-const HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-const BULAN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-const ARAH_ANGIN = ["Utara", "Timur Laut", "Timur", "Tenggara", "Selatan", "Barat Daya", "Barat", "Barat Laut"];
+function t(key) {
+  const v = UI[lang] && UI[lang][key] !== undefined ? UI[lang][key] : UI.id[key];
+  return v;
+}
+
+function applyStaticI18n() {
+  document.documentElement.lang = lang;
+  document.title = t("pageTitle");
+  $("page-desc").setAttribute("content", t("pageDesc"));
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
+  document.querySelectorAll("[data-i18n-title]").forEach(el => { el.title = t(el.dataset.i18nTitle); });
+  document.querySelectorAll(".lang-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.lang === lang));
+}
+
+function setLang(newLang) {
+  if (newLang !== "id" && newLang !== "en") return;
+  lang = newLang;
+  try { localStorage.setItem(LANG_KEY, lang); } catch (e) { /* abaikan */ }
+  applyStaticI18n();
+  updateFavoriteBtn();
+  updateNotifyBtn();
+  loadWeather(currentPlace);
+}
+
+/* Deskripsi kode cuaca WMO */
+const WMO_TEXT = {
+  id: {
+    0: "Cerah", 1: "Cerah berawan", 2: "Berawan sebagian", 3: "Mendung",
+    45: "Kabut", 48: "Kabut beku",
+    51: "Gerimis ringan", 53: "Gerimis", 55: "Gerimis lebat",
+    56: "Gerimis beku", 57: "Gerimis beku lebat",
+    61: "Hujan ringan", 63: "Hujan sedang", 65: "Hujan lebat",
+    66: "Hujan beku", 67: "Hujan beku lebat",
+    71: "Salju ringan", 73: "Salju sedang", 75: "Salju lebat", 77: "Butiran salju",
+    80: "Hujan lokal ringan", 81: "Hujan lokal sedang", 82: "Hujan lokal deras",
+    85: "Salju lokal ringan", 86: "Salju lokal lebat",
+    95: "Badai petir", 96: "Badai petir, hujan es", 99: "Badai petir, hujan es lebat"
+  },
+  en: {
+    0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
+    45: "Fog", 48: "Rime fog",
+    51: "Light drizzle", 53: "Drizzle", 55: "Dense drizzle",
+    56: "Freezing drizzle", 57: "Dense freezing drizzle",
+    61: "Light rain", 63: "Moderate rain", 65: "Heavy rain",
+    66: "Freezing rain", 67: "Heavy freezing rain",
+    71: "Light snow", 73: "Moderate snow", 75: "Heavy snow", 77: "Snow grains",
+    80: "Light rain showers", 81: "Rain showers", 82: "Violent rain showers",
+    85: "Light snow showers", 86: "Heavy snow showers",
+    95: "Thunderstorm", 96: "Thunderstorm with hail", 99: "Thunderstorm with heavy hail"
+  }
+};
+
+const HARI = {
+  id: ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"],
+  en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+};
+const BULAN = {
+  id: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
+  en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+};
+const ARAH_ANGIN = {
+  id: ["Utara", "Timur Laut", "Timur", "Tenggara", "Selatan", "Barat Daya", "Barat", "Barat Laut"],
+  en: ["North", "Northeast", "East", "Southeast", "South", "Southwest", "West", "Northwest"]
+};
 
 const MODELS = [
   { key: "ecmwf_ifs025", name: "ECMWF", color: "#e8b64c" },
@@ -92,15 +269,28 @@ const AIRPORTS = [
 ];
 
 const WX_MAP = {
-  DZ: "gerimis", RA: "hujan", SN: "salju", SG: "butir salju", PL: "es pelet",
-  GR: "hujan es", GS: "es kecil", UP: "presipitasi", BR: "halimun", FG: "kabut",
-  FU: "asap", VA: "abu vulkanik", DU: "debu", SA: "pasir", HZ: "udara kabur",
-  SQ: "squall", FC: "puting beliung", TS: "badai petir", SH: "hujan lokal",
-  FZ: "membeku", VC: "di sekitar", MI: "tipis", BC: "berkas", DR: "melayang",
-  BL: "tertiup", PR: "sebagian", PO: "pusaran debu", DS: "badai debu", SS: "badai pasir"
+  id: {
+    DZ: "gerimis", RA: "hujan", SN: "salju", SG: "butir salju", PL: "es pelet",
+    GR: "hujan es", GS: "es kecil", UP: "presipitasi", BR: "halimun", FG: "kabut",
+    FU: "asap", VA: "abu vulkanik", DU: "debu", SA: "pasir", HZ: "udara kabur",
+    SQ: "squall", FC: "puting beliung", TS: "badai petir", SH: "hujan lokal",
+    FZ: "membeku", VC: "di sekitar", MI: "tipis", BC: "berkas", DR: "melayang",
+    BL: "tertiup", PR: "sebagian", PO: "pusaran debu", DS: "badai debu", SS: "badai pasir"
+  },
+  en: {
+    DZ: "drizzle", RA: "rain", SN: "snow", SG: "snow grains", PL: "ice pellets",
+    GR: "hail", GS: "small hail", UP: "precipitation", BR: "mist", FG: "fog",
+    FU: "smoke", VA: "volcanic ash", DU: "dust", SA: "sand", HZ: "haze",
+    SQ: "squall", FC: "funnel cloud", TS: "thunderstorm", SH: "showers",
+    FZ: "freezing", VC: "in the vicinity", MI: "shallow", BC: "patches", DR: "drifting",
+    BL: "blowing", PR: "partial", PO: "dust whirls", DS: "duststorm", SS: "sandstorm"
+  }
 };
 
-const CLOUD_MAP = { FEW: "sedikit awan", SCT: "awan tersebar", BKN: "awan pecah", OVC: "tertutup awan", VV: "visibilitas vertikal" };
+const CLOUD_MAP = {
+  id: { FEW: "sedikit awan", SCT: "awan tersebar", BKN: "awan pecah", OVC: "tertutup awan", VV: "visibilitas vertikal" },
+  en: { FEW: "a few clouds", SCT: "scattered clouds", BKN: "broken clouds", OVC: "overcast", VV: "vertical visibility" }
+};
 
 const $ = id => document.getElementById(id);
 
@@ -118,14 +308,24 @@ let radarFrames = [], radarIdx = 0, radarTimer = null, radarHost = "";
 
 /* kualitas udara */
 const AQI_API = "https://air-quality-api.open-meteo.com/v1/air-quality";
-const AQI_LEVELS = [
-  { max: 50, label: "Baik", color: "#7dcf8a", note: "Udara bersih; aman untuk aktivitas luar ruangan." },
-  { max: 100, label: "Sedang", color: "#d8c24a", note: "Cukup aman; kelompok sensitif boleh lebih waspada." },
-  { max: 150, label: "Tidak sehat (kelompok sensitif)", color: "#e0a04a", note: "Penderita asma dan lansia sebaiknya kurangi aktivitas luar." },
-  { max: 200, label: "Tidak sehat", color: "#dd7a4a", note: "Kurangi aktivitas luar yang lama; masker dianjurkan." },
-  { max: 300, label: "Sangat tidak sehat", color: "#c4527a", note: "Hindari aktivitas luar ruangan; masker N95 dianjurkan." },
-  { max: Infinity, label: "Berbahaya", color: "#9a5cc9", note: "Tetap di dalam ruangan; tutup ventilasi bila memungkinkan." }
-];
+const AQI_LEVELS = {
+  id: [
+    { max: 50, label: "Baik", color: "#7dcf8a", note: "Udara bersih; aman untuk aktivitas luar ruangan." },
+    { max: 100, label: "Sedang", color: "#d8c24a", note: "Cukup aman; kelompok sensitif boleh lebih waspada." },
+    { max: 150, label: "Tidak sehat (kelompok sensitif)", color: "#e0a04a", note: "Penderita asma dan lansia sebaiknya kurangi aktivitas luar." },
+    { max: 200, label: "Tidak sehat", color: "#dd7a4a", note: "Kurangi aktivitas luar yang lama; masker dianjurkan." },
+    { max: 300, label: "Sangat tidak sehat", color: "#c4527a", note: "Hindari aktivitas luar ruangan; masker N95 dianjurkan." },
+    { max: Infinity, label: "Berbahaya", color: "#9a5cc9", note: "Tetap di dalam ruangan; tutup ventilasi bila memungkinkan." }
+  ],
+  en: [
+    { max: 50, label: "Good", color: "#7dcf8a", note: "Clean air; safe for outdoor activity." },
+    { max: 100, label: "Moderate", color: "#d8c24a", note: "Reasonably safe; sensitive groups should stay a bit more alert." },
+    { max: 150, label: "Unhealthy for sensitive groups", color: "#e0a04a", note: "Asthma sufferers and the elderly should reduce outdoor activity." },
+    { max: 200, label: "Unhealthy", color: "#dd7a4a", note: "Cut down on extended outdoor activity; a mask is advisable." },
+    { max: 300, label: "Very unhealthy", color: "#c4527a", note: "Avoid outdoor activity; an N95 mask is advisable." },
+    { max: Infinity, label: "Hazardous", color: "#9a5cc9", note: "Stay indoors; seal off ventilation if possible." }
+  ]
+};
 
 /* ===================== ikon SVG ===================== */
 
@@ -211,14 +411,14 @@ function iconSVG(code, isDay) {
 
 /* ===================== util ===================== */
 
-function wmoText(code) { return WMO_TEXT[code] || "Kondisi tidak lazim (kode " + code + ")"; }
+function wmoText(code) { return WMO_TEXT[lang][code] || (lang === "en" ? "Unusual condition (code " + code + ")" : "Kondisi tidak lazim (kode " + code + ")"); }
 
 function flagEmoji(cc) {
   if (!cc || cc.length !== 2) return "";
   return String.fromCodePoint(...[...cc.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
 }
 
-function windDir(deg) { return ARAH_ANGIN[Math.round(deg / 45) % 8]; }
+function windDir(deg) { return ARAH_ANGIN[lang][Math.round(deg / 45) % 8]; }
 
 function glowClass(code, isDay) {
   if (code >= 95) return "w-storm";
@@ -233,7 +433,7 @@ function glowClass(code, isDay) {
 function dayOfWeek(iso) {
   return new Date(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)).getDay();
 }
-function fmtDate(iso) { return +iso.slice(8, 10) + " " + BULAN[+iso.slice(5, 7) - 1]; }
+function fmtDate(iso) { return +iso.slice(8, 10) + " " + BULAN[lang][+iso.slice(5, 7) - 1]; }
 function fmtClock(iso) { return iso.slice(11, 16); }
 
 function isDayAt(iso, daily) {
@@ -289,9 +489,9 @@ function inAustria(lat, lon) {
 
 function ageText(ms) {
   const min = Math.round(ms / 60000);
-  if (min < 1) return "baru saja";
-  if (min < 60) return min + " mnt lalu";
-  return Math.floor(min / 60) + " j " + (min % 60) + " mnt lalu";
+  if (min < 1) return t("justNow");
+  if (min < 60) return t("minAgo")(min);
+  return t("hAgo")(Math.floor(min / 60), min % 60);
 }
 
 function kvRow(label, val, cls) {
@@ -320,7 +520,7 @@ async function loadGeoSphere(place, modelTemp) {
   if (!inAustria(place.latitude, place.longitude)) { panel.hidden = true; return false; }
 
   panel.hidden = false;
-  $("geo-station").textContent = "Mencari stasiun terdekat…";
+  $("geo-station").textContent = t("geoSearching");
   $("geo-stats").innerHTML = "";
   $("geo-age").textContent = "";
 
@@ -337,25 +537,26 @@ async function loadGeoSphere(place, modelTemp) {
 
     $("geo-age").textContent = ageText(Date.now() - Date.parse(data.timestamps[0]));
     $("geo-station").innerHTML =
-      `${titleCase(nearest.name)} <span class="o-sub">· ${nearest.dist.toFixed(1)} km · ${Math.round(nearest.altitude)} m dpl</span>`;
+      `${titleCase(nearest.name)} <span class="o-sub">· ${nearest.dist.toFixed(1)} km · ${Math.round(nearest.altitude)} ${t("masl")}</span>`;
 
+    const kmh = t("kmh");
     const rows = [];
-    if (v("TL") != null) rows.push(kvRow("Suhu udara", v("TL").toFixed(1) + " °C"));
-    if (v("TP") != null) rows.push(kvRow("Titik embun", v("TP").toFixed(1) + " °C"));
-    if (v("RF") != null) rows.push(kvRow("Kelembapan", Math.round(v("RF")) + "%"));
-    if (v("FFAM") != null) rows.push(kvRow("Angin", Math.round(v("FFAM") * 3.6) + " km/j" + (v("DD") != null ? " " + windDir(v("DD")) : "")));
-    if (v("FFX") != null) rows.push(kvRow("Hembusan", Math.round(v("FFX") * 3.6) + " km/j"));
-    if (v("PRED") != null) rows.push(kvRow("Tekanan (MSL)", Math.round(v("PRED")) + " hPa"));
-    if (v("RR") != null) rows.push(kvRow("Hujan 10 mnt", v("RR").toFixed(1) + " mm"));
+    if (v("TL") != null) rows.push(kvRow(t("statTemp"), v("TL").toFixed(1) + " °C"));
+    if (v("TP") != null) rows.push(kvRow(t("statDew"), v("TP").toFixed(1) + " °C"));
+    if (v("RF") != null) rows.push(kvRow(t("statHumidity"), Math.round(v("RF")) + "%"));
+    if (v("FFAM") != null) rows.push(kvRow(t("statWindKv"), Math.round(v("FFAM") * 3.6) + " " + kmh + (v("DD") != null ? " " + windDir(v("DD")) : "")));
+    if (v("FFX") != null) rows.push(kvRow(t("statGustKv"), Math.round(v("FFX") * 3.6) + " " + kmh));
+    if (v("PRED") != null) rows.push(kvRow(t("statPressMsl"), Math.round(v("PRED")) + " hPa"));
+    if (v("RR") != null) rows.push(kvRow(t("statRain10"), v("RR").toFixed(1) + " mm"));
     if (v("TL") != null && modelTemp != null) {
       const dT = v("TL") - modelTemp;
-      rows.push(kvRow("Selisih vs model", (dT >= 0 ? "+" : "") + dT.toFixed(1) + " °C", "kv-delta"));
+      rows.push(kvRow(t("statDelta"), (dT >= 0 ? "+" : "") + dT.toFixed(1) + " °C", "kv-delta"));
     }
     $("geo-stats").innerHTML = rows.join("");
     return true;
   } catch (err) {
     $("geo-station").textContent = "";
-    $("geo-stats").innerHTML = `<div class="obs-empty">Stasiun GeoSphere sedang tidak bisa dihubungi (${err.message}).</div>`;
+    $("geo-stats").innerHTML = `<div class="obs-empty">${t("geoUnavailable")} (${err.message}).</div>`;
     return true;
   }
 }
@@ -401,10 +602,12 @@ function parseMetar(raw) {
 
 function wxText(tok) {
   let s = tok, intensity = "";
-  if (s.startsWith("+")) { intensity = " lebat"; s = s.slice(1); }
-  else if (s.startsWith("-")) { intensity = " ringan"; s = s.slice(1); }
+  const heavy = lang === "en" ? " heavy" : " lebat";
+  const light = lang === "en" ? " light" : " ringan";
+  if (s.startsWith("+")) { intensity = heavy; s = s.slice(1); }
+  else if (s.startsWith("-")) { intensity = light; s = s.slice(1); }
   const words = [];
-  for (let i = 0; i < s.length; i += 2) words.push(WX_MAP[s.slice(i, i + 2)] || s.slice(i, i + 2));
+  for (let i = 0; i < s.length; i += 2) words.push(WX_MAP[lang][s.slice(i, i + 2)] || s.slice(i, i + 2));
   return words.join(" ") + intensity;
 }
 
@@ -420,7 +623,7 @@ function metarDate(day, hh, mm) {
 async function loadMetar(place, modelTemp) {
   const panel = $("obs-metar");
   panel.hidden = false;
-  $("metar-station").textContent = "Mencari bandara terdekat…";
+  $("metar-station").textContent = t("metarSearching");
   $("metar-stats").innerHTML = "";
   $("metar-raw").textContent = "";
   $("metar-age").textContent = "";
@@ -433,10 +636,11 @@ async function loadMetar(place, modelTemp) {
 
   if (!candidates.length) {
     $("metar-station").textContent = "";
-    $("metar-stats").innerHTML = '<div class="obs-empty">Tidak ada bandara ber-METAR dalam radius 500 km dari titik ini.</div>';
+    $("metar-stats").innerHTML = `<div class="obs-empty">${t("metarNoAirport")}</div>`;
     return true;
   }
 
+  const kmh = t("kmh");
   for (const ap of candidates) {
     try {
       const res = await fetch(`${METNO_METAR}?icao=${ap.icao}`);
@@ -452,23 +656,23 @@ async function loadMetar(place, modelTemp) {
       $("metar-station").innerHTML = `${ap.name} <span class="o-sub">· ${ap.icao} · ${ap.dist.toFixed(0)} km</span>`;
 
       const rows = [];
-      if (m.temp != null) rows.push(kvRow("Suhu udara", m.temp + " °C"));
-      if (m.dew != null) rows.push(kvRow("Titik embun", m.dew + " °C"));
-      if (m.temp != null && m.dew != null) rows.push(kvRow("Kelembapan", relHumidity(m.temp, m.dew) + "%"));
-      if (m.windKmh != null) rows.push(kvRow("Angin", m.windKmh + " km/j" + (m.windDir != null ? " " + windDir(m.windDir) : " variabel")));
-      if (m.gustKmh != null) rows.push(kvRow("Hembusan", m.gustKmh + " km/j"));
-      if (m.visM != null) rows.push(kvRow("Visibilitas", m.visM >= 9999 ? "≥ 10 km" + (m.cavok ? " (CAVOK)" : "") : (m.visM / 1000).toFixed(1) + " km"));
-      if (m.wx.length) rows.push(kvRow("Fenomena", m.wx.map(wxText).join(", ")));
+      if (m.temp != null) rows.push(kvRow(t("statTemp"), m.temp + " °C"));
+      if (m.dew != null) rows.push(kvRow(t("statDew"), m.dew + " °C"));
+      if (m.temp != null && m.dew != null) rows.push(kvRow(t("statHumidity"), relHumidity(m.temp, m.dew) + "%"));
+      if (m.windKmh != null) rows.push(kvRow(t("statWindKv"), m.windKmh + " " + kmh + (m.windDir != null ? " " + windDir(m.windDir) : " " + t("variableWind"))));
+      if (m.gustKmh != null) rows.push(kvRow(t("statGustKv"), m.gustKmh + " " + kmh));
+      if (m.visM != null) rows.push(kvRow(t("statVisibility"), m.visM >= 9999 ? "≥ 10 km" + (m.cavok ? " (CAVOK)" : "") : (m.visM / 1000).toFixed(1) + " km"));
+      if (m.wx.length) rows.push(kvRow(t("statPhenomena"), m.wx.map(wxText).join(", ")));
       if (m.clouds.length) {
         const c = m.clouds[0];
-        rows.push(kvRow("Awan", `${CLOUD_MAP[c.cover] || c.cover} ${c.baseM.toLocaleString("id-ID")} m`));
+        rows.push(kvRow(t("statCloudKv"), `${CLOUD_MAP[lang][c.cover] || c.cover} ${c.baseM.toLocaleString(lang === "en" ? "en-US" : "id-ID")} m`));
       } else if (m.cavok) {
-        rows.push(kvRow("Awan", "tidak signifikan (CAVOK)"));
+        rows.push(kvRow(t("statCloudKv"), t("cavokInsignificant")));
       }
-      if (m.qnh != null) rows.push(kvRow("Tekanan (QNH)", m.qnh + " hPa"));
+      if (m.qnh != null) rows.push(kvRow(t("statPressQnh"), m.qnh + " hPa"));
       if (m.temp != null && modelTemp != null) {
         const dT = m.temp - modelTemp;
-        rows.push(kvRow("Selisih vs model", (dT >= 0 ? "+" : "") + dT.toFixed(1) + " °C", "kv-delta"));
+        rows.push(kvRow(t("statDelta"), (dT >= 0 ? "+" : "") + dT.toFixed(1) + " °C", "kv-delta"));
       }
       $("metar-stats").innerHTML = rows.join("");
       $("metar-raw").textContent = raw;
@@ -477,7 +681,7 @@ async function loadMetar(place, modelTemp) {
   }
 
   $("metar-station").textContent = "";
-  $("metar-stats").innerHTML = '<div class="obs-empty">METAR bandara terdekat sedang tidak tersedia.</div>';
+  $("metar-stats").innerHTML = `<div class="obs-empty">${t("metarUnavailable")}</div>`;
   return true;
 }
 
@@ -492,7 +696,8 @@ async function loadObservations(place, modelTemp) {
 /* ===================== kualitas udara ===================== */
 
 function aqiLevel(v) {
-  return AQI_LEVELS.find(l => v <= l.max) || AQI_LEVELS[AQI_LEVELS.length - 1];
+  const levels = AQI_LEVELS[lang];
+  return levels.find(l => v <= l.max) || levels[levels.length - 1];
 }
 
 async function loadAirQuality(place) {
@@ -512,7 +717,7 @@ async function loadAirQuality(place) {
 
     const rows = [
       ["PM2.5", c.pm2_5, "µg/m³"], ["PM10", c.pm10, "µg/m³"],
-      ["Ozon (O₃)", c.ozone, "µg/m³"], ["NO₂", c.nitrogen_dioxide, "µg/m³"],
+      [(lang === "en" ? "Ozone (O₃)" : "Ozon (O₃)"), c.ozone, "µg/m³"], ["NO₂", c.nitrogen_dioxide, "µg/m³"],
       ["SO₂", c.sulphur_dioxide, "µg/m³"], ["CO", c.carbon_monoxide, "µg/m³"]
     ];
     $("aqi-pollutants").innerHTML = rows
@@ -556,17 +761,17 @@ function setRadarFrame(idx) {
   if (radarLayer) radarMap.removeLayer(radarLayer);
   radarLayer = layer;
   $("radar-slider").value = radarIdx;
-  $("radar-time").textContent = unixToLocalHM(frame.time, currentUtcOffset) + " waktu setempat";
+  $("radar-time").textContent = unixToLocalHM(frame.time, currentUtcOffset) + " " + t("localTimeAt");
 }
 
 function stopRadarPlayback() {
   if (radarTimer) { clearInterval(radarTimer); radarTimer = null; }
-  $("radar-play").textContent = "▶ Putar";
+  $("radar-play").textContent = "▶";
 }
 
 function toggleRadarPlayback() {
   if (radarTimer) { stopRadarPlayback(); return; }
-  $("radar-play").textContent = "⏸ Jeda";
+  $("radar-play").textContent = "⏸";
   radarTimer = setInterval(() => setRadarFrame(radarIdx + 1), 700);
 }
 
@@ -593,12 +798,30 @@ async function loadRadar(place) {
 
 const PRESSURE_API = "https://api.open-meteo.com/v1/forecast";
 
+const PRESSURE_CATEGORIES = {
+  id: {
+    fastDown: { cls: "trend-down", arrow: "↓↓", label: "turun cepat", note: "Penurunan tekanan tajam biasanya mendahului sistem cuaca aktif — awan tebal atau hujan bisa menyusul." },
+    down: { cls: "trend-down", arrow: "↓", label: "turun", note: "Tekanan menurun; cuaca cenderung memburuk dalam beberapa jam ke depan." },
+    fastUp: { cls: "trend-up", arrow: "↑↑", label: "naik cepat", note: "Kenaikan tekanan tajam biasanya menandai cuaca yang membaik dan menstabil." },
+    up: { cls: "trend-up", arrow: "↑", label: "naik", note: "Tekanan meningkat; cuaca cenderung membaik." },
+    flat: { cls: "trend-flat", arrow: "→", label: "stabil", note: "Tidak ada indikasi perubahan cuaca signifikan dari sisi tekanan udara." }
+  },
+  en: {
+    fastDown: { cls: "trend-down", arrow: "↓↓", label: "falling fast", note: "A sharp pressure drop usually precedes an active weather system — thick cloud or rain may follow." },
+    down: { cls: "trend-down", arrow: "↓", label: "falling", note: "Pressure is dropping; weather tends to worsen over the next few hours." },
+    fastUp: { cls: "trend-up", arrow: "↑↑", label: "rising fast", note: "A sharp pressure rise usually signals improving, stabilizing weather." },
+    up: { cls: "trend-up", arrow: "↑", label: "rising", note: "Pressure is rising; weather tends to improve." },
+    flat: { cls: "trend-flat", arrow: "→", label: "steady", note: "No significant weather change indicated by pressure alone." }
+  }
+};
+
 function pressureCategory(delta3h) {
-  if (delta3h <= -3) return { cls: "trend-down", arrow: "↓↓", label: "turun cepat", note: "Penurunan tekanan tajam biasanya mendahului sistem cuaca aktif — awan tebal atau hujan bisa menyusul." };
-  if (delta3h <= -1) return { cls: "trend-down", arrow: "↓", label: "turun", note: "Tekanan menurun; cuaca cenderung memburuk dalam beberapa jam ke depan." };
-  if (delta3h >= 3) return { cls: "trend-up", arrow: "↑↑", label: "naik cepat", note: "Kenaikan tekanan tajam biasanya menandai cuaca yang membaik dan menstabil." };
-  if (delta3h >= 1) return { cls: "trend-up", arrow: "↑", label: "naik", note: "Tekanan meningkat; cuaca cenderung membaik." };
-  return { cls: "trend-flat", arrow: "→", label: "stabil", note: "Tidak ada indikasi perubahan cuaca signifikan dari sisi tekanan udara." };
+  const cat = PRESSURE_CATEGORIES[lang];
+  if (delta3h <= -3) return cat.fastDown;
+  if (delta3h <= -1) return cat.down;
+  if (delta3h >= 3) return cat.fastUp;
+  if (delta3h >= 1) return cat.up;
+  return cat.flat;
 }
 
 async function loadPressureTrend(place) {
@@ -620,9 +843,9 @@ async function loadPressureTrend(place) {
 
     const delta = now - past;
     const cat = pressureCategory(delta);
-    trendEl.textContent = `${cat.arrow} ${delta >= 0 ? "+" : ""}${delta.toFixed(1)} hPa/3j (${cat.label})`;
+    trendEl.textContent = `${cat.arrow} ${delta >= 0 ? "+" : ""}${delta.toFixed(1)} ${t("pressureUnit3h")} (${cat.label})`;
     trendEl.className = "s-trend " + cat.cls;
-    noteEl.textContent = `Tren tekanan: ${cat.note}`;
+    noteEl.textContent = `${t("pressureTrendPrefix")} ${cat.note}`;
     noteEl.hidden = false;
   } catch (err) {
     trendEl.textContent = "";
@@ -634,15 +857,17 @@ async function loadPressureTrend(place) {
 
 const USNO_API = "https://aa.usno.navy.mil/api/rstt/oneday";
 
-const MOON_PHASE_ID = {
-  "New Moon": "Bulan Baru",
-  "Waxing Crescent": "Sabit Muda",
-  "First Quarter": "Kuartal Pertama",
-  "Waxing Gibbous": "Cembung Bertambah",
-  "Full Moon": "Bulan Purnama",
-  "Waning Gibbous": "Cembung Berkurang",
-  "Last Quarter": "Kuartal Ketiga",
-  "Waning Crescent": "Sabit Tua"
+const MOON_PHASE_NAME = {
+  id: {
+    "New Moon": "Bulan Baru", "Waxing Crescent": "Sabit Muda", "First Quarter": "Kuartal Pertama",
+    "Waxing Gibbous": "Cembung Bertambah", "Full Moon": "Bulan Purnama", "Waning Gibbous": "Cembung Berkurang",
+    "Last Quarter": "Kuartal Ketiga", "Waning Crescent": "Sabit Tua"
+  },
+  en: {
+    "New Moon": "New Moon", "Waxing Crescent": "Waxing Crescent", "First Quarter": "First Quarter",
+    "Waxing Gibbous": "Waxing Gibbous", "Full Moon": "Full Moon", "Waning Gibbous": "Waning Gibbous",
+    "Last Quarter": "Last Quarter", "Waning Crescent": "Waning Crescent"
+  }
 };
 const MOON_WAXING_PHASES = ["New Moon", "Waxing Crescent", "First Quarter", "Waxing Gibbous"];
 
@@ -683,11 +908,11 @@ async function loadAstro(place) {
     const waxing = MOON_WAXING_PHASES.includes(d.curphase);
 
     renderMoonIcon($("moon-icon"), isNaN(k) ? 0.5 : k, waxing);
-    $("moon-phase-name").textContent = MOON_PHASE_ID[d.curphase] || d.curphase;
-    $("moon-illum").textContent = (d.fracillum || "—") + " tersinari";
+    $("moon-phase-name").textContent = MOON_PHASE_NAME[lang][d.curphase] || d.curphase;
+    $("moon-illum").textContent = (d.fracillum || "—") + " " + t("tersinari");
 
-    $("moon-rise").textContent = findPhen(moon, "Rise") || "tidak terbit hari ini";
-    $("moon-set").textContent = findPhen(moon, "Set") || "tidak terbenam hari ini";
+    $("moon-rise").textContent = findPhen(moon, "Rise") || t("moonNoRise");
+    $("moon-set").textContent = findPhen(moon, "Set") || t("moonNoSet");
     $("civil-dawn").textContent = findPhen(sun, "Begin Civil Twilight") || "—";
     $("civil-dusk").textContent = findPhen(sun, "End Civil Twilight") || "—";
 
@@ -723,7 +948,7 @@ function updateFavoriteBtn() {
   const active = isFavorite(currentPlace);
   btn.textContent = active ? "★" : "☆";
   btn.classList.toggle("active", active);
-  btn.title = active ? "Hapus dari favorit" : "Tambah ke favorit";
+  btn.title = active ? t("favoriteRemove") : t("favoriteAdd");
 }
 
 function toggleFavoriteCurrent() {
@@ -769,7 +994,7 @@ async function renderFavoritesStrip() {
         <span class="fav-name">${f.name}</span>
         <span class="fav-temp">${tempHtml}</span>
       </span>
-      <button class="fav-remove" type="button" aria-label="Hapus favorit">×</button>
+      <button class="fav-remove" type="button" aria-label="${t("favoriteRemoveAria")}">×</button>
     </div>`;
   }).join("");
 
@@ -790,6 +1015,30 @@ function catatanMbah(data, place) {
   const uv = data.daily.uv_index_max[0];
   const hujanGroup = (code >= 51 && code <= 67) || (code >= 80 && code <= 82) || code >= 95;
   const lines = [];
+
+  if (lang === "en") {
+    if (code >= 95) {
+      lines.push(`Thunder is active over ${nama}. Mbah suggests postponing outdoor ambitions; hot tea is statistically safer.`);
+    } else if ([63, 65, 67, 81, 82].includes(code)) {
+      lines.push(`Serious rain over ${nama}. Today an umbrella isn't an accessory, it's a requirement.`);
+    } else if ([51, 53, 55, 56, 57, 61, 66, 80].includes(code)) {
+      lines.push(`Light drizzle over ${nama}. A folding umbrella in the bag never betrays you.`);
+    } else if ((code >= 71 && code <= 77) || code === 85 || code === 86) {
+      lines.push(`Snow is falling over ${nama}. Grippy shoes first, style second.`);
+    } else if (code === 45 || code === 48) {
+      lines.push(`Fog over ${nama}; visibility is running low. Drive gently, overtake even more gently.`);
+    } else if (code <= 1) {
+      if (T >= 30) lines.push(`Clear and hot over ${nama}. Hydration today isn't a suggestion, it's an instruction.`);
+      else if (T <= 10) lines.push(`Clear but biting over ${nama}. Jacket first, style later.`);
+      else lines.push(`The sky over ${nama} is being friendly. A shame to only watch it from a window.`);
+    } else {
+      lines.push(`The sky over ${nama} is neutral grey. Safe for most plans, except drying laundry outside.`);
+    }
+    if (T <= 0) lines.push("Below freezing; gloves are now mandatory.");
+    if (prob >= 60 && !hujanGroup) lines.push(`Today's rain chance is ${prob}% — an umbrella should probably come along.`);
+    if (uv >= 8) lines.push(`UV index ${Math.round(uv)}; sunscreen shouldn't just live in the drawer.`);
+    return lines.join(" ");
+  }
 
   if (code >= 95) {
     lines.push(`Petir sedang aktif di ${nama}. Mbah menyarankan menunda ambisi luar ruangan; teh hangat secara statistik lebih aman.`);
@@ -822,7 +1071,7 @@ async function loadWeather(place) {
   const statusEl = $("status");
   statusEl.hidden = false;
   statusEl.classList.remove("error");
-  statusEl.textContent = `Menerawang langit ${place.name}…`;
+  statusEl.textContent = t("scanning")(place.name);
 
   const base = `latitude=${place.latitude}&longitude=${place.longitude}&timezone=auto`;
 
@@ -838,7 +1087,7 @@ async function loadWeather(place) {
 
   if (mainRes.status === "rejected") {
     statusEl.classList.add("error");
-    statusEl.textContent = "Terawangan buyar: " + mainRes.reason.message + ". Periksa koneksi, lalu coba lagi.";
+    statusEl.textContent = t("scanFailed")(mainRes.reason.message);
     return;
   }
 
@@ -862,8 +1111,8 @@ async function loadWeather(place) {
 
   statusEl.hidden = true;
   $("app").hidden = false;
-  $("updated-at").textContent = "Diperbarui " +
-    new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+  $("updated-at").textContent = t("updatedAt") + " " +
+    new Date().toLocaleTimeString(lang === "en" ? "en-GB" : "id-ID", { hour: "2-digit", minute: "2-digit", hour12: false });
 }
 
 function render(data, place) {
@@ -876,16 +1125,16 @@ function render(data, place) {
 
   $("place-line").textContent = placeLabel(place);
   $("local-time").textContent =
-    `${HARI[dayOfWeek(c.time)]}, ${fmtDate(c.time)} · ${fmtClock(c.time)} waktu setempat (${data.timezone_abbreviation})`;
+    t("localTimeLine")(HARI[lang][dayOfWeek(c.time)], fmtDate(c.time), fmtClock(c.time), data.timezone_abbreviation);
 
   $("cur-icon").innerHTML = iconSVG(c.weather_code, isDay);
   $("cur-temp").textContent = Math.round(c.temperature_2m);
   $("cur-desc").textContent = wmoText(c.weather_code);
-  $("cur-feels").textContent = Math.round(c.apparent_temperature);
+  $("feels-line").textContent = t("feelsLine")(Math.round(c.apparent_temperature));
 
   $("cur-hum").textContent = c.relative_humidity_2m + "%";
-  $("cur-wind").textContent = Math.round(c.wind_speed_10m) + " km/j " + windDir(c.wind_direction_10m);
-  $("cur-gust").textContent = Math.round(c.wind_gusts_10m) + " km/j";
+  $("cur-wind").textContent = Math.round(c.wind_speed_10m) + " " + t("kmh") + " " + windDir(c.wind_direction_10m);
+  $("cur-gust").textContent = Math.round(c.wind_gusts_10m) + " " + t("kmh");
   $("cur-cloud").textContent = c.cloud_cover + "%";
   $("cur-precip").textContent = c.precipitation + " mm";
   $("cur-press").textContent = Math.round(c.surface_pressure) + " hPa";
@@ -941,7 +1190,7 @@ function renderDaily(data) {
     const row = document.createElement("div");
     row.className = "day-row";
     row.innerHTML =
-      `<div class="day-name">${i === 0 ? "Hari ini" : HARI[dayOfWeek(d.time[i])]}<span class="d-date">${fmtDate(d.time[i])}</span></div>` +
+      `<div class="day-name">${i === 0 ? t("today") : HARI[lang][dayOfWeek(d.time[i])]}<span class="d-date">${fmtDate(d.time[i])}</span></div>` +
       `<div class="day-icon">${iconSVG(d.weather_code[i], true)}</div>` +
       `<div class="day-desc">${wmoText(d.weather_code[i])}</div>` +
       `<div class="day-rain">${d.precipitation_probability_max[i] ?? 0}%</div>` +
@@ -975,9 +1224,9 @@ function renderModels(data, curTime) {
   }
   const s = maxSpread.toFixed(1);
   let verdict;
-  if (maxSpread < 1.5) verdict = `Ketiga model sedang kompak — selisih maksimum ${s} °C dalam 24 jam ke depan. Prakiraan ini boleh dipegang.`;
-  else if (maxSpread < 3) verdict = `Model-model besar cukup akur (selisih maksimum ${s} °C). Wajar, namanya juga meramal masa depan.`;
-  else verdict = `Para model sedang berbeda pendapat, selisihnya sampai ${s} °C. Masa depan memang sulit; siapkan rencana cadangan.`;
+  if (maxSpread < 1.5) verdict = t("verdictTight")(s);
+  else if (maxSpread < 3) verdict = t("verdictOk")(s);
+  else verdict = t("verdictSpread")(s);
   $("model-verdict").textContent = verdict;
 }
 
@@ -1090,7 +1339,7 @@ function drawModelChart() {
       ctx.strokeStyle = "rgba(255,255,255,0.10)";
       ctx.beginPath(); ctx.moveTo(xs(i), padT); ctx.lineTo(xs(i), padT + ih); ctx.stroke();
       ctx.fillStyle = "#8a94a6";
-      ctx.fillText(HARI[dayOfWeek(iso)].slice(0, 3) + " " + fmtDate(iso), xs(i), H - 6);
+      ctx.fillText(HARI[lang][dayOfWeek(iso)].slice(0, 3) + " " + fmtDate(iso), xs(i), H - 6);
     } else if (i % 6 === 0 && i > 0) {
       ctx.fillStyle = "#5c6678";
       ctx.fillText(iso.slice(11, 13), xs(i), H - 6);
@@ -1135,7 +1384,7 @@ function showResults(list) {
   if (!list.length) {
     const empty = document.createElement("div");
     empty.className = "search-empty";
-    empty.textContent = "Kota tidak ditemukan dalam terawangan. Coba ejaan lain?";
+    empty.textContent = t("searchEmpty");
     box.appendChild(empty);
   } else {
     list.forEach(p => {
@@ -1159,7 +1408,7 @@ function showResults(list) {
 
 async function searchCity(query) {
   try {
-    const data = await fetchJson(`${GEO_API}?name=${encodeURIComponent(query)}&count=8&language=id&format=json`);
+    const data = await fetchJson(`${GEO_API}?name=${encodeURIComponent(query)}&count=8&language=${lang}&format=json`);
     showResults(data.results || []);
   } catch (err) {
     showResults([]);
@@ -1200,20 +1449,20 @@ document.querySelectorAll(".chip[data-quick]").forEach(btn => {
 
 $("geo-btn").addEventListener("click", () => {
   if (!navigator.geolocation) {
-    alert("Browser ini tidak mendukung geolokasi. Silakan cari kota secara manual.");
+    alert(t("geoUnsupported"));
     return;
   }
   $("status").hidden = false;
   $("status").classList.remove("error");
-  $("status").textContent = "Mencari posisimu…";
+  $("status").textContent = t("findingLocation");
   navigator.geolocation.getCurrentPosition(
     pos => pickPlace({
-      name: "Lokasi kamu", admin1: "", country: "", country_code: "",
+      name: t("yourLocation"), admin1: "", country: "", country_code: "",
       latitude: +pos.coords.latitude.toFixed(4), longitude: +pos.coords.longitude.toFixed(4)
     }),
     () => {
       $("status").classList.add("error");
-      $("status").textContent = "Akses lokasi ditolak atau tidak tersedia (file lokal kadang diblokir browser). Silakan cari kota manual.";
+      $("status").textContent = t("geoDenied");
     },
     { timeout: 10000 }
   );
@@ -1267,7 +1516,7 @@ function updateNotifyBtn() {
   const btn = $("notify-btn");
   if (!("Notification" in window)) { btn.hidden = true; return; }
   btn.hidden = false;
-  btn.textContent = rainNotifyEnabled ? "Notifikasi hujan: aktif" : "Ingatkan kalau mau hujan";
+  btn.textContent = rainNotifyEnabled ? t("notifyOn") : t("notifyOff");
   btn.classList.toggle("active", rainNotifyEnabled);
 }
 
@@ -1286,7 +1535,7 @@ async function toggleRainNotify() {
 
 function fireRainNotification(place, prob) {
   const title = "Pawang Cuaca";
-  const body = `Peluang hujan ${prob}% dalam 2 jam ke depan di ${place.name}. Payung, kawan.`;
+  const body = t("rainNotifBody")(prob, place.name);
   const opts = { body, icon: "icons/icon-192.png", badge: "icons/icon-192.png", tag: "pawang-cuaca-rain" };
   if (navigator.serviceWorker) {
     navigator.serviceWorker.ready.then(reg => reg.showNotification(title, opts)).catch(() => new Notification(title, opts));
@@ -1312,5 +1561,10 @@ function checkRainAlert(data, place) {
 $("notify-btn").addEventListener("click", toggleRainNotify);
 updateNotifyBtn();
 
+document.querySelectorAll(".lang-btn").forEach(btn => {
+  btn.addEventListener("click", () => setLang(btn.dataset.lang));
+});
+
 /* ===================== mulai ===================== */
+applyStaticI18n();
 loadWeather(currentPlace);
