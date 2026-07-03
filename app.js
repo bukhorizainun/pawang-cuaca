@@ -109,6 +109,23 @@ let hourlyData = null;   // untuk grafik 24 jam
 let modelData = null;    // untuk grafik perbandingan model
 let searchTimer = null;
 let searchResults = [];
+let currentUtcOffset = 0;
+
+/* radar hujan */
+const RAINVIEWER_API = "https://api.rainviewer.com/public/weather-maps.json";
+let radarMap = null, radarLayer = null, radarMarker = null;
+let radarFrames = [], radarIdx = 0, radarTimer = null, radarHost = "";
+
+/* kualitas udara */
+const AQI_API = "https://air-quality-api.open-meteo.com/v1/air-quality";
+const AQI_LEVELS = [
+  { max: 50, label: "Baik", color: "#7dcf8a", note: "Udara bersih; aman untuk aktivitas luar ruangan." },
+  { max: 100, label: "Sedang", color: "#d8c24a", note: "Cukup aman; kelompok sensitif boleh lebih waspada." },
+  { max: 150, label: "Tidak sehat (kelompok sensitif)", color: "#e0a04a", note: "Penderita asma dan lansia sebaiknya kurangi aktivitas luar." },
+  { max: 200, label: "Tidak sehat", color: "#dd7a4a", note: "Kurangi aktivitas luar yang lama; masker dianjurkan." },
+  { max: 300, label: "Sangat tidak sehat", color: "#c4527a", note: "Hindari aktivitas luar ruangan; masker N95 dianjurkan." },
+  { max: Infinity, label: "Berbahaya", color: "#9a5cc9", note: "Tetap di dalam ruangan; tutup ventilasi bila memungkinkan." }
+];
 
 /* ===================== ikon SVG ===================== */
 
@@ -472,6 +489,106 @@ async function loadObservations(place, modelTemp) {
   $("obs-card").hidden = !(geo || metar);
 }
 
+/* ===================== kualitas udara ===================== */
+
+function aqiLevel(v) {
+  return AQI_LEVELS.find(l => v <= l.max) || AQI_LEVELS[AQI_LEVELS.length - 1];
+}
+
+async function loadAirQuality(place) {
+  const card = $("aqi-card");
+  try {
+    const data = await fetchJson(
+      `${AQI_API}?latitude=${place.latitude}&longitude=${place.longitude}` +
+      `&current=us_aqi,pm10,pm2_5,ozone,nitrogen_dioxide,sulphur_dioxide,carbon_monoxide&timezone=auto`);
+    const c = data.current;
+    if (c.us_aqi == null) { card.hidden = true; return; }
+
+    const lvl = aqiLevel(c.us_aqi);
+    $("aqi-badge").style.setProperty("--aqi-color", lvl.color);
+    $("aqi-num").textContent = Math.round(c.us_aqi);
+    $("aqi-label").textContent = lvl.label;
+    $("aqi-note").textContent = lvl.note;
+
+    const rows = [
+      ["PM2.5", c.pm2_5, "µg/m³"], ["PM10", c.pm10, "µg/m³"],
+      ["Ozon (O₃)", c.ozone, "µg/m³"], ["NO₂", c.nitrogen_dioxide, "µg/m³"],
+      ["SO₂", c.sulphur_dioxide, "µg/m³"], ["CO", c.carbon_monoxide, "µg/m³"]
+    ];
+    $("aqi-pollutants").innerHTML = rows
+      .filter(([, v]) => v != null)
+      .map(([label, v, unit]) => `<div class="stat"><span class="s-label">${label}</span><span class="s-val">${(Math.round(v * 10) / 10)} ${unit}</span></div>`)
+      .join("");
+
+    card.hidden = false;
+  } catch (err) {
+    card.hidden = true;
+  }
+}
+
+/* ===================== radar hujan ===================== */
+
+function unixToLocalHM(unixSec, offsetSec) {
+  return new Date((unixSec + offsetSec) * 1000).toISOString().slice(11, 16);
+}
+
+function initRadarMap(place) {
+  if (typeof L === "undefined") return false;
+  if (!radarMap) {
+    radarMap = L.map($("radar-map"), { attributionControl: false });
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 12 }).addTo(radarMap);
+    radarMarker = L.circleMarker([place.latitude, place.longitude], {
+      radius: 6, color: "#e8b64c", weight: 2, fillColor: "#e8b64c", fillOpacity: 0.9
+    }).addTo(radarMap);
+  } else {
+    radarMarker.setLatLng([place.latitude, place.longitude]);
+  }
+  radarMap.setView([place.latitude, place.longitude], 7);
+  return true;
+}
+
+function setRadarFrame(idx) {
+  if (!radarFrames.length) return;
+  radarIdx = ((idx % radarFrames.length) + radarFrames.length) % radarFrames.length;
+  const frame = radarFrames[radarIdx];
+  const url = `${radarHost}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
+  const layer = L.tileLayer(url, { opacity: 0.65 }).addTo(radarMap);
+  if (radarLayer) radarMap.removeLayer(radarLayer);
+  radarLayer = layer;
+  $("radar-slider").value = radarIdx;
+  $("radar-time").textContent = unixToLocalHM(frame.time, currentUtcOffset) + " waktu setempat";
+}
+
+function stopRadarPlayback() {
+  if (radarTimer) { clearInterval(radarTimer); radarTimer = null; }
+  $("radar-play").textContent = "▶ Putar";
+}
+
+function toggleRadarPlayback() {
+  if (radarTimer) { stopRadarPlayback(); return; }
+  $("radar-play").textContent = "⏸ Jeda";
+  radarTimer = setInterval(() => setRadarFrame(radarIdx + 1), 700);
+}
+
+async function loadRadar(place) {
+  const card = $("radar-card");
+  try {
+    if (!initRadarMap(place)) { card.hidden = true; return; }
+    const data = await fetchJson(RAINVIEWER_API);
+    radarHost = data.host;
+    radarFrames = data.radar && data.radar.past ? data.radar.past : [];
+    stopRadarPlayback();
+    if (!radarFrames.length) { card.hidden = true; return; }
+    $("radar-slider").max = radarFrames.length - 1;
+    // Baru unhide di sini: container harus punya ukuran nyata sebelum Leaflet mengukurnya,
+    // kalau tidak peta ke-cache dengan ukuran 0 (bug klasik Leaflet di elemen yang tadinya hidden).
+    card.hidden = false;
+    setTimeout(() => { radarMap.invalidateSize(); setRadarFrame(radarFrames.length - 1); }, 50);
+  } catch (err) {
+    card.hidden = true;
+  }
+}
+
 /* ===================== Catatan Mbah ===================== */
 
 function catatanMbah(data, place) {
@@ -537,6 +654,8 @@ async function loadWeather(place) {
   render(mainRes.value, place);
 
   loadObservations(place, mainRes.value.current.temperature_2m);
+  loadAirQuality(place);
+  loadRadar(place);
 
   if (modelRes.status === "fulfilled") {
     $("model-card").hidden = false;
@@ -556,6 +675,7 @@ function render(data, place) {
   const daily = data.daily;
   const isDay = c.is_day === 1;
 
+  currentUtcOffset = data.utc_offset_seconds || 0;
   document.body.className = glowClass(c.weather_code, isDay);
 
   $("place-line").textContent = placeLabel(place);
@@ -800,7 +920,7 @@ function drawModelChart() {
 let resizeTimer = null;
 window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { drawHourlyChart(); drawModelChart(); }, 150);
+  resizeTimer = setTimeout(() => { drawHourlyChart(); drawModelChart(); if (radarMap) radarMap.invalidateSize(); }, 150);
 });
 
 /* ===================== pencarian kota ===================== */
@@ -904,6 +1024,9 @@ $("geo-btn").addEventListener("click", () => {
 });
 
 $("refresh-btn").addEventListener("click", () => loadWeather(currentPlace));
+
+$("radar-play").addEventListener("click", toggleRadarPlayback);
+$("radar-slider").addEventListener("input", e => { stopRadarPlayback(); setRadarFrame(+e.target.value); });
 
 setInterval(() => loadWeather(currentPlace), REFRESH_MS);
 

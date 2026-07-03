@@ -7,6 +7,8 @@
   <meta name="description" content="Prakiraan cuaca sedunia berbasis model resmi ECMWF, NOAA GFS, dan DWD ICON. Dibawakan dengan serius. Hampir.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><circle cx=%2216%22 cy=%2216%22 r=%229%22 fill=%22none%22 stroke=%22%23e8b64c%22 stroke-width=%222.5%22/><line x1=%2216%22 y1=%221%22 x2=%2216%22 y2=%225%22 stroke=%22%23e8b64c%22 stroke-width=%222.5%22/><line x1=%2216%22 y1=%2227%22 x2=%2216%22 y2=%2231%22 stroke=%22%23e8b64c%22 stroke-width=%222.5%22/><line x1=%221%22 y1=%2216%22 x2=%225%22 y2=%2216%22 stroke=%22%23e8b64c%22 stroke-width=%222.5%22/><line x1=%2227%22 y1=%2216%22 x2=%2231%22 y2=%2216%22 stroke=%22%23e8b64c%22 stroke-width=%222.5%22/></svg>">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
 </head>
 <body>
 
@@ -75,6 +77,35 @@
         <p class="note-text" id="wejangan">…</p>
       </section>
 
+      <!-- Kualitas udara -->
+      <section class="card" id="aqi-card" hidden>
+        <h2>Kualitas udara <span class="h-sub">saat ini</span></h2>
+        <div class="aqi-main">
+          <div class="aqi-badge" id="aqi-badge">
+            <span class="aqi-num" id="aqi-num">--</span>
+            <span class="aqi-scale">AQI AS</span>
+          </div>
+          <div class="aqi-info">
+            <div class="aqi-label" id="aqi-label">—</div>
+            <div class="aqi-note" id="aqi-note"></div>
+          </div>
+        </div>
+        <div class="aqi-pollutants" id="aqi-pollutants"></div>
+        <p class="fineprint">Skala AQI AS (EPA): 0–50 baik, 51–100 sedang, 101–150 tidak sehat untuk kelompok sensitif, 151–200 tidak sehat, 201–300 sangat tidak sehat, 301+ berbahaya. Berguna terutama saat musim kabut asap.</p>
+      </section>
+
+      <!-- Radar hujan -->
+      <section class="card" id="radar-card" hidden>
+        <h2>Radar hujan <span class="h-sub">2 jam terakhir</span></h2>
+        <div id="radar-map"></div>
+        <div class="radar-controls">
+          <button id="radar-play" class="btn-ghost" type="button">▶ Putar</button>
+          <input id="radar-slider" type="range" min="0" max="0" value="0" step="1">
+          <span class="radar-time" id="radar-time">—</span>
+        </div>
+        <p class="fineprint">Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a> (mosaik radar cuaca dunia, diisi estimasi satelit di wilayah tanpa radar darat) · peta dasar © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Kepadatan cakupan bervariasi per wilayah.</p>
+      </section>
+
       <!-- Observasi stasiun -->
       <section class="card" id="obs-card" hidden>
         <h2>Observasi stasiun <span class="h-sub">pengukuran langsung, bukan model</span></h2>
@@ -128,6 +159,8 @@
 
   </div>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -27,6 +27,15 @@ Aplikasi menyegarkan data otomatis tiap 10 menit.
 - Kedua panel menampilkan **selisih observasi vs model** — pengecekan jujur seberapa
   akurat prakiraannya saat ini.
 
+## Kualitas udara & radar hujan
+
+- **Indeks kualitas udara (AQI AS)** — dari Open-Meteo Air Quality API: PM2.5, PM10,
+  ozon, NO₂, SO₂, CO, dengan badge berwarna dan catatan singkat sesuai tingkat bahaya.
+  Berguna terutama untuk Indonesia saat musim kabut asap.
+- **Radar hujan** — mosaik radar cuaca dunia dari [RainViewer](https://www.rainviewer.com/),
+  ditampilkan di atas peta OpenStreetMap (Leaflet). Bisa diputar seperti animasi untuk
+  melihat pergerakan hujan 2 jam terakhir, dengan slider dan tombol putar/jeda.
+
 ## Fitur
 
 - Pencarian kota sedunia (geocoding Open-Meteo), kota terakhir tersimpan otomatis
@@ -43,4 +52,4 @@ Buka `index.html` di browser. Tanpa install, tanpa API key. Butuh koneksi intern
 
 ## Teknologi
 
-HTML + CSS + JavaScript murni. Tiga file, nol dependensi.
+HTML + CSS + JavaScript murni, plus [Leaflet](https://leafletjs.com/) (via CDN, untuk peta radar).
