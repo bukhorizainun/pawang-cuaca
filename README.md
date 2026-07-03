@@ -59,6 +59,16 @@ Aplikasi menyegarkan data otomatis tiap 10 menit.
   secara berkala walau tab tertutup, tapi dukungan latar-belakang penuh bergantung
   kebijakan tiap browser/OS — bukan jaminan dari aplikasi ini.
 
+## Kota favorit & tren tekanan
+
+- **Kota favorit** — tombol bintang (☆/★) di sebelah nama kota menambah/menghapus kota
+  dari daftar favorit. Favorit tampil sebagai strip di atas halaman, masing-masing dengan
+  ikon dan suhu terkini sendiri; klik untuk langsung berpindah ke kota itu.
+- **Tren tekanan barometrik** — perubahan tekanan udara 3 jam terakhir dihitung dan
+  ditampilkan di samping angka tekanan (naik/turun/stabil, dengan panah). Ini heuristik
+  meteorologi klasik: penurunan tajam sering mendahului cuaca aktif, kenaikan tajam
+  biasanya menandai cuaca membaik — indikasi, bukan prakiraan pasti.
+
 ## Cara pakai
 
 Buka `index.html` di browser. Tanpa install wajib, tanpa API key. Butuh koneksi internet

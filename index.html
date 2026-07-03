@@ -39,6 +39,8 @@
       </div>
     </header>
 
+    <div id="favorites-strip" class="favorites-strip" hidden></div>
+
     <div id="status" class="status">Menerawang langit…</div>
 
     <main id="app" hidden>
@@ -47,7 +49,10 @@
       <section class="card hero">
         <div class="hero-top">
           <div>
-            <div class="place" id="place-line">—</div>
+            <div class="place-row">
+              <span class="place" id="place-line">—</span>
+              <button id="favorite-btn" class="fav-toggle" type="button" title="Tambah ke favorit">☆</button>
+            </div>
             <div class="local-time" id="local-time"></div>
           </div>
           <div class="meta-right">
@@ -71,10 +76,11 @@
           <div class="stat"><span class="s-label">Hembusan</span><span class="s-val" id="cur-gust">—</span></div>
           <div class="stat"><span class="s-label">Tutupan awan</span><span class="s-val" id="cur-cloud">—</span></div>
           <div class="stat"><span class="s-label">Presipitasi</span><span class="s-val" id="cur-precip">—</span></div>
-          <div class="stat"><span class="s-label">Tekanan</span><span class="s-val" id="cur-press">—</span></div>
+          <div class="stat"><span class="s-label">Tekanan</span><span class="s-val" id="cur-press">—</span><span class="s-trend" id="cur-press-trend"></span></div>
           <div class="stat"><span class="s-label">Indeks UV maks</span><span class="s-val" id="cur-uv">—</span></div>
           <div class="stat"><span class="s-label">Matahari</span><span class="s-val" id="cur-sun">—</span></div>
         </div>
+        <p class="fineprint" id="press-trend-note" hidden></p>
       </section>
 
       <!-- Catatan Mbah -->

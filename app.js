@@ -589,6 +589,130 @@ async function loadRadar(place) {
   }
 }
 
+/* ===================== tren tekanan barometrik ===================== */
+
+const PRESSURE_API = "https://api.open-meteo.com/v1/forecast";
+
+function pressureCategory(delta3h) {
+  if (delta3h <= -3) return { cls: "trend-down", arrow: "↓↓", label: "turun cepat", note: "Penurunan tekanan tajam biasanya mendahului sistem cuaca aktif — awan tebal atau hujan bisa menyusul." };
+  if (delta3h <= -1) return { cls: "trend-down", arrow: "↓", label: "turun", note: "Tekanan menurun; cuaca cenderung memburuk dalam beberapa jam ke depan." };
+  if (delta3h >= 3) return { cls: "trend-up", arrow: "↑↑", label: "naik cepat", note: "Kenaikan tekanan tajam biasanya menandai cuaca yang membaik dan menstabil." };
+  if (delta3h >= 1) return { cls: "trend-up", arrow: "↑", label: "naik", note: "Tekanan meningkat; cuaca cenderung membaik." };
+  return { cls: "trend-flat", arrow: "→", label: "stabil", note: "Tidak ada indikasi perubahan cuaca signifikan dari sisi tekanan udara." };
+}
+
+async function loadPressureTrend(place) {
+  const trendEl = $("cur-press-trend");
+  const noteEl = $("press-trend-note");
+  try {
+    const data = await fetchJson(
+      `${PRESSURE_API}?latitude=${place.latitude}&longitude=${place.longitude}` +
+      `&past_days=1&forecast_days=1&hourly=surface_pressure&timezone=auto`);
+    const h = data.hourly;
+    const nowIso = new Date((Math.floor(Date.now() / 1000) + data.utc_offset_seconds) * 1000).toISOString();
+    let idx = h.time.indexOf(nowIso.slice(0, 13) + ":00");
+    if (idx < 0) idx = h.time.length - 1;
+    if (idx < 3) { trendEl.textContent = ""; noteEl.hidden = true; return; }
+
+    const now = h.surface_pressure[idx];
+    const past = h.surface_pressure[idx - 3];
+    if (now == null || past == null) { trendEl.textContent = ""; noteEl.hidden = true; return; }
+
+    const delta = now - past;
+    const cat = pressureCategory(delta);
+    trendEl.textContent = `${cat.arrow} ${delta >= 0 ? "+" : ""}${delta.toFixed(1)} hPa/3j (${cat.label})`;
+    trendEl.className = "s-trend " + cat.cls;
+    noteEl.textContent = `Tren tekanan: ${cat.note}`;
+    noteEl.hidden = false;
+  } catch (err) {
+    trendEl.textContent = "";
+    noteEl.hidden = true;
+  }
+}
+
+/* ===================== kota favorit ===================== */
+
+const FAVORITES_KEY = "pawang-cuaca:favorites";
+let favorites = [];
+try {
+  const rawFav = localStorage.getItem(FAVORITES_KEY);
+  if (rawFav) favorites = JSON.parse(rawFav);
+} catch (e) { /* abaikan */ }
+
+function sameCoord(a, b) {
+  return Math.abs(a.latitude - b.latitude) < 0.001 && Math.abs(a.longitude - b.longitude) < 0.001;
+}
+
+function isFavorite(place) {
+  return favorites.some(f => sameCoord(f, place));
+}
+
+function saveFavorites() {
+  try { localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites)); } catch (e) { /* abaikan */ }
+}
+
+function updateFavoriteBtn() {
+  const btn = $("favorite-btn");
+  const active = isFavorite(currentPlace);
+  btn.textContent = active ? "★" : "☆";
+  btn.classList.toggle("active", active);
+  btn.title = active ? "Hapus dari favorit" : "Tambah ke favorit";
+}
+
+function toggleFavoriteCurrent() {
+  if (isFavorite(currentPlace)) {
+    favorites = favorites.filter(f => !sameCoord(f, currentPlace));
+  } else {
+    favorites.push({ ...currentPlace });
+  }
+  saveFavorites();
+  updateFavoriteBtn();
+  renderFavoritesStrip();
+}
+
+function removeFavorite(idx, e) {
+  e.stopPropagation();
+  favorites.splice(idx, 1);
+  saveFavorites();
+  updateFavoriteBtn();
+  renderFavoritesStrip();
+}
+
+async function renderFavoritesStrip() {
+  const strip = $("favorites-strip");
+  if (!favorites.length) { strip.hidden = true; strip.innerHTML = ""; return; }
+  strip.hidden = false;
+
+  const results = await Promise.allSettled(favorites.map(f =>
+    fetchJson(`${WEATHER_API}?latitude=${f.latitude}&longitude=${f.longitude}&current=temperature_2m,weather_code,is_day&timezone=auto`)
+  ));
+
+  strip.innerHTML = favorites.map((f, i) => {
+    const r = results[i];
+    const isCurrent = sameCoord(f, currentPlace);
+    let iconHtml = "", tempHtml = "";
+    if (r.status === "fulfilled") {
+      const c = r.value.current;
+      iconHtml = iconSVG(c.weather_code, c.is_day === 1);
+      tempHtml = Math.round(c.temperature_2m) + "°";
+    }
+    return `<div class="fav-chip${isCurrent ? " current" : ""}" data-idx="${i}">
+      <span class="fav-body">
+        <span class="fav-icon">${iconHtml}</span>
+        <span class="fav-name">${f.name}</span>
+        <span class="fav-temp">${tempHtml}</span>
+      </span>
+      <button class="fav-remove" type="button" aria-label="Hapus favorit">×</button>
+    </div>`;
+  }).join("");
+
+  strip.querySelectorAll(".fav-chip").forEach(chip => {
+    const idx = +chip.dataset.idx;
+    chip.querySelector(".fav-body").addEventListener("click", () => pickPlace(favorites[idx]));
+    chip.querySelector(".fav-remove").addEventListener("click", e => removeFavorite(idx, e));
+  });
+}
+
 /* ===================== Catatan Mbah ===================== */
 
 function catatanMbah(data, place) {
@@ -656,7 +780,10 @@ async function loadWeather(place) {
   loadObservations(place, mainRes.value.current.temperature_2m);
   loadAirQuality(place);
   loadRadar(place);
+  loadPressureTrend(place);
   checkRainAlert(mainRes.value, place);
+  updateFavoriteBtn();
+  renderFavoritesStrip();
 
   if (modelRes.status === "fulfilled") {
     $("model-card").hidden = false;
@@ -1025,6 +1152,8 @@ $("geo-btn").addEventListener("click", () => {
 });
 
 $("refresh-btn").addEventListener("click", () => loadWeather(currentPlace));
+
+$("favorite-btn").addEventListener("click", toggleFavoriteCurrent);
 
 $("radar-play").addEventListener("click", toggleRadarPlayback);
 $("radar-slider").addEventListener("input", e => { stopRadarPlayback(); setRadarFrame(+e.target.value); });

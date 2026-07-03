@@ -133,6 +133,66 @@ body.w-fog         { --glow: rgba(138,148,166,0.12); }
 }
 .chip:hover { color: var(--text); border-color: var(--dim); }
 
+/* ===== Favorit ===== */
+.favorites-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 18px;
+  scrollbar-width: thin;
+}
+.fav-chip {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px 7px 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.fav-chip:hover { border-color: var(--dim); background: var(--card-2); }
+.fav-chip.current { border-color: var(--amber); }
+.fav-body { display: flex; align-items: center; gap: 7px; font-size: 0.84rem; }
+.fav-icon { width: 20px; height: 20px; flex: 0 0 auto; }
+.fav-icon svg { width: 100%; height: 100%; }
+.fav-name { font-weight: 600; }
+.fav-temp { color: var(--dim); }
+.fav-remove {
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--faint);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.fav-remove:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+
+.place-row { display: flex; align-items: center; gap: 8px; }
+.fav-toggle {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--faint);
+  cursor: pointer;
+  padding: 0;
+}
+.fav-toggle:hover { color: var(--dim); }
+.fav-toggle.active { color: var(--amber); }
+
+/* ===== Tren tekanan ===== */
+.s-trend { font-size: 0.72rem; margin-top: 1px; }
+.s-trend.trend-up { color: var(--green); }
+.s-trend.trend-down { color: #dd7a4a; }
+.s-trend.trend-flat { color: var(--faint); }
+
 /* ===== Status ===== */
 .status { text-align: center; padding: 40px 14px; color: var(--dim); font-size: 0.92rem; }
 .status.error { color: #e08a7a; }
