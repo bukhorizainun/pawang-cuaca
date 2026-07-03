@@ -1,0 +1,390 @@
+/* ===== Pawang Cuaca — dashboard meteorologi ===== */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0d1117;
+  --bg-2: #10161f;
+  --card: #151c28;
+  --card-2: #1a2230;
+  --line: #232d40;
+  --text: #e8ecf2;
+  --dim: #8a94a6;
+  --faint: #5c6678;
+  --amber: #e8b64c;
+  --blue: #5aa2e0;
+  --green: #7dcf8a;
+  --snowc: #cfe2f5;
+  --radius: 14px;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: "Segoe UI Variable Text", "Segoe UI", Inter, system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-variant-numeric: tabular-nums;
+}
+
+/* pendar halus di atas, warnanya mengikuti cuaca */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(60% 40% at 50% -5%, var(--glow, rgba(90,162,224,0.10)), transparent 70%);
+  transition: background 1.5s ease;
+  z-index: 0;
+}
+body.w-clear-day   { --glow: rgba(232,182,76,0.14); }
+body.w-clear-night { --glow: rgba(120,140,220,0.13); }
+body.w-cloudy      { --glow: rgba(154,167,189,0.10); }
+body.w-rain        { --glow: rgba(90,162,224,0.13); }
+body.w-snow        { --glow: rgba(207,226,245,0.14); }
+body.w-storm       { --glow: rgba(176,120,220,0.14); }
+body.w-fog         { --glow: rgba(138,148,166,0.12); }
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 28px 18px 48px;
+}
+
+/* ===== Masthead ===== */
+.masthead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.brand h1 {
+  font-size: 1.15rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+}
+.brand .tagline { color: var(--dim); font-size: 0.82rem; margin-top: 4px; }
+
+.search-area { flex: 1 1 320px; max-width: 420px; }
+
+.search-input-wrap { position: relative; }
+
+#search-input {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 0.92rem;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+#search-input::placeholder { color: var(--faint); }
+#search-input:focus { border-color: var(--blue); }
+
+.search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0; right: 0;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 50;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5);
+}
+.search-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+.search-item:last-child { border-bottom: none; }
+.search-item:hover { background: rgba(255, 255, 255, 0.05); }
+.search-item .s-sub { color: var(--dim); font-size: 0.78rem; display: block; margin-top: 1px; }
+.search-empty { padding: 12px 14px; color: var(--dim); font-size: 0.85rem; }
+
+.quick-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip {
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  color: var(--dim);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.chip:hover { color: var(--text); border-color: var(--dim); }
+
+/* ===== Status ===== */
+.status { text-align: center; padding: 40px 14px; color: var(--dim); font-size: 0.92rem; }
+.status.error { color: #e08a7a; }
+
+/* ===== Kartu ===== */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  margin-bottom: 14px;
+}
+.card h2 {
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--dim);
+  margin-bottom: 16px;
+}
+.h-sub { font-weight: 400; letter-spacing: 0.04em; text-transform: none; color: var(--faint); margin-left: 6px; }
+
+/* ===== Hero ===== */
+.hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.place { font-size: 1.05rem; font-weight: 600; }
+.local-time { color: var(--dim); font-size: 0.82rem; margin-top: 3px; }
+.meta-right { display: flex; align-items: center; gap: 12px; }
+.updated { color: var(--faint); font-size: 0.78rem; }
+.btn-ghost {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  color: var(--dim);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.btn-ghost:hover { color: var(--text); border-color: var(--dim); }
+
+.hero-main {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.hero-icon { width: 84px; height: 84px; flex: 0 0 auto; }
+.hero-icon svg { width: 100%; height: 100%; }
+.hero-temp { font-size: 4.4rem; font-weight: 200; line-height: 1; letter-spacing: -0.02em; }
+.hero-temp .unit { font-size: 1.6rem; font-weight: 400; color: var(--dim); vertical-align: super; margin-left: 2px; }
+.desc-text { font-size: 1.25rem; font-weight: 550; }
+.feels { color: var(--dim); font-size: 0.88rem; margin-top: 4px; }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.s-label {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--faint);
+}
+.s-val { font-size: 0.98rem; font-weight: 600; }
+
+/* ===== Catatan Mbah ===== */
+.note-card {
+  border-left: 3px solid var(--amber);
+  background: linear-gradient(90deg, rgba(232, 182, 76, 0.07), transparent 60%);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 14px 20px;
+  margin-bottom: 14px;
+}
+.note-label {
+  font-size: 0.68rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--amber);
+}
+.note-text { margin-top: 5px; font-size: 0.95rem; line-height: 1.55; color: var(--text); font-style: italic; }
+
+/* ===== Grafik ===== */
+.chart-wrap { width: 100%; overflow: hidden; }
+canvas { display: block; width: 100%; }
+
+/* ===== Strip per jam ===== */
+.hourly-strip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 12px 0 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.hour-chip {
+  flex: 0 0 auto;
+  min-width: 62px;
+  text-align: center;
+  padding: 10px 4px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.hour-chip .h-time { font-size: 0.7rem; color: var(--faint); }
+.hour-chip .h-icon { width: 26px; height: 26px; margin: 5px auto; }
+.hour-chip .h-icon svg { width: 100%; height: 100%; }
+.hour-chip .h-temp { font-size: 0.88rem; font-weight: 600; }
+.hour-chip .h-prob { font-size: 0.7rem; color: var(--blue); margin-top: 2px; }
+
+/* ===== 7 hari (baris + bilah rentang) ===== */
+.daily-list { display: flex; flex-direction: column; }
+.day-row {
+  display: grid;
+  grid-template-columns: 92px 34px minmax(90px, 1fr) 52px 40px minmax(80px, 1.2fr) 40px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--line);
+}
+.day-row:last-child { border-bottom: none; }
+.day-name { font-size: 0.88rem; font-weight: 600; }
+.day-name .d-date { display: block; font-size: 0.72rem; font-weight: 400; color: var(--faint); }
+.day-icon { width: 30px; height: 30px; }
+.day-icon svg { width: 100%; height: 100%; }
+.day-desc { font-size: 0.82rem; color: var(--dim); }
+.day-rain { font-size: 0.8rem; color: var(--blue); text-align: right; }
+.day-min { font-size: 0.86rem; color: var(--dim); text-align: right; }
+.day-max { font-size: 0.86rem; font-weight: 600; }
+.day-track {
+  position: relative;
+  height: 5px;
+  background: var(--bg-2);
+  border-radius: 3px;
+}
+.day-fill {
+  position: absolute;
+  top: 0; bottom: 0;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #5aa2e0, #e8b64c);
+}
+
+/* ===== Observasi stasiun ===== */
+.obs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+.obs-panel {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.obs-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.obs-src {
+  font-size: 0.68rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--green);
+}
+.obs-age { font-size: 0.72rem; color: var(--faint); }
+.obs-station { font-size: 0.95rem; font-weight: 600; margin: 6px 0 10px; }
+.obs-station .o-sub { font-weight: 400; color: var(--dim); font-size: 0.8rem; }
+.obs-stats { display: flex; flex-direction: column; }
+.kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.84rem;
+}
+.kv:last-child { border-bottom: none; }
+.kv span { color: var(--dim); }
+.kv b { font-weight: 600; text-align: right; }
+.kv.kv-delta b { color: var(--amber); }
+.obs-raw {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border-radius: 8px;
+  font-family: Consolas, "Cascadia Mono", monospace;
+  font-size: 0.7rem;
+  color: var(--faint);
+  word-break: break-all;
+  line-height: 1.5;
+}
+.obs-empty { font-size: 0.82rem; color: var(--faint); font-style: italic; padding: 4px 0; }
+
+/* ===== Legenda model ===== */
+.legend { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 12px; }
+.lg { display: inline-flex; align-items: center; gap: 7px; font-size: 0.8rem; color: var(--text); }
+.lg em { font-style: normal; color: var(--faint); font-size: 0.74rem; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.dot-ecmwf { background: var(--amber); }
+.dot-gfs { background: var(--blue); }
+.dot-icon { background: var(--green); }
+
+.model-verdict { margin-top: 12px; font-size: 0.88rem; color: var(--text); font-style: italic; }
+.fineprint { margin-top: 8px; font-size: 0.75rem; line-height: 1.5; color: var(--faint); }
+.fineprint em { color: var(--dim); }
+
+/* ===== Ikon cuaca (SVG) ===== */
+.wicon { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.wicon .i-sun   { stroke: var(--amber); stroke-width: 1.8; fill: none; }
+.wicon .i-moon  { stroke: #cdd6e8; stroke-width: 1.8; fill: none; }
+.wicon .i-cloud { stroke: #9aa7bd; stroke-width: 1.8; fill: none; }
+.wicon .i-cloud-fill { fill: var(--card); }
+.wicon .i-cloud-back { stroke: #6b7789; stroke-width: 1.8; fill: none; }
+.wicon .i-rain  { stroke: var(--blue); stroke-width: 1.8; }
+.wicon .i-snow  { stroke: var(--snowc); stroke-width: 1.6; }
+.wicon .i-fog   { stroke: var(--dim); stroke-width: 1.8; }
+.wicon .i-bolt  { fill: var(--amber); stroke: none; }
+
+/* ===== Footer ===== */
+footer { margin-top: 24px; }
+.credit { font-size: 0.75rem; line-height: 1.55; color: var(--faint); text-align: center; }
+.credit a { color: var(--dim); text-decoration: none; border-bottom: 1px dotted var(--faint); }
+.credit a:hover { color: var(--text); }
+
+/* ===== Responsif ===== */
+@media (max-width: 640px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .hero-temp { font-size: 3.4rem; }
+  .hero-icon { width: 64px; height: 64px; }
+  .day-row { grid-template-columns: 78px 30px 44px 36px 1fr 36px; }
+  .day-desc { display: none; }
+}

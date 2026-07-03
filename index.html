@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pawang Cuaca — Prakiraan Multi-Model</title>
+  <meta name="description" content="Prakiraan cuaca sedunia berbasis model resmi ECMWF, NOAA GFS, dan DWD ICON. Dibawakan dengan serius. Hampir.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><circle cx=%2216%22 cy=%2216%22 r=%229%22 fill=%22none%22 stroke=%22%23e8b64c%22 stroke-width=%222.5%22/><line x1=%2216%22 y1=%221%22 x2=%2216%22 y2=%225%22 stroke=%22%23e8b64c%22 stroke-width=%222.5%22/><line x1=%2216%22 y1=%2227%22 x2=%2216%22 y2=%2231%22 stroke=%22%23e8b64c%22 stroke-width=%222.5%22/><line x1=%221%22 y1=%2216%22 x2=%225%22 y2=%2216%22 stroke=%22%23e8b64c%22 stroke-width=%222.5%22/><line x1=%2227%22 y1=%2216%22 x2=%2231%22 y2=%2216%22 stroke=%22%23e8b64c%22 stroke-width=%222.5%22/></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+
+    <header class="masthead">
+      <div class="brand">
+        <h1>Pawang Cuaca</h1>
+        <p class="tagline">Prakiraan multi-model — dibawakan dengan serius. Hampir.</p>
+      </div>
+      <div class="search-area">
+        <div class="search-input-wrap">
+          <input id="search-input" type="text" placeholder="Cari kota — Jakarta, Yogyakarta, Linz…" autocomplete="off" spellcheck="false">
+          <div id="search-results" class="search-results" hidden></div>
+        </div>
+        <div class="quick-chips">
+          <button class="chip" data-quick="linz">Linz</button>
+          <button class="chip" data-quick="jakarta">Jakarta</button>
+          <button class="chip" data-quick="yogyakarta">Yogyakarta</button>
+          <button class="chip" id="geo-btn">Lokasi saya</button>
+        </div>
+      </div>
+    </header>
+
+    <div id="status" class="status">Menerawang langit…</div>
+
+    <main id="app" hidden>
+
+      <!-- Kondisi saat ini -->
+      <section class="card hero">
+        <div class="hero-top">
+          <div>
+            <div class="place" id="place-line">—</div>
+            <div class="local-time" id="local-time"></div>
+          </div>
+          <div class="meta-right">
+            <span class="updated" id="updated-at"></span>
+            <button id="refresh-btn" class="btn-ghost">Perbarui</button>
+          </div>
+        </div>
+
+        <div class="hero-main">
+          <div class="hero-icon" id="cur-icon"></div>
+          <div class="hero-temp"><span id="cur-temp">--</span><span class="unit">°C</span></div>
+          <div class="hero-desc">
+            <div class="desc-text" id="cur-desc">—</div>
+            <div class="feels">Terasa seperti <span id="cur-feels">--</span>°C</div>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><span class="s-label">Kelembapan</span><span class="s-val" id="cur-hum">—</span></div>
+          <div class="stat"><span class="s-label">Angin</span><span class="s-val" id="cur-wind">—</span></div>
+          <div class="stat"><span class="s-label">Hembusan</span><span class="s-val" id="cur-gust">—</span></div>
+          <div class="stat"><span class="s-label">Tutupan awan</span><span class="s-val" id="cur-cloud">—</span></div>
+          <div class="stat"><span class="s-label">Presipitasi</span><span class="s-val" id="cur-precip">—</span></div>
+          <div class="stat"><span class="s-label">Tekanan</span><span class="s-val" id="cur-press">—</span></div>
+          <div class="stat"><span class="s-label">Indeks UV maks</span><span class="s-val" id="cur-uv">—</span></div>
+          <div class="stat"><span class="s-label">Matahari</span><span class="s-val" id="cur-sun">—</span></div>
+        </div>
+      </section>
+
+      <!-- Catatan Mbah -->
+      <section class="note-card">
+        <span class="note-label">Catatan Mbah</span>
+        <p class="note-text" id="wejangan">…</p>
+      </section>
+
+      <!-- Observasi stasiun -->
+      <section class="card" id="obs-card" hidden>
+        <h2>Observasi stasiun <span class="h-sub">pengukuran langsung, bukan model</span></h2>
+        <div class="obs-grid">
+          <div class="obs-panel" id="obs-geo" hidden>
+            <div class="obs-head"><span class="obs-src">GeoSphere Austria · TAWES 10 menit</span><span class="obs-age" id="geo-age"></span></div>
+            <div class="obs-station" id="geo-station">—</div>
+            <div class="obs-stats" id="geo-stats"></div>
+          </div>
+          <div class="obs-panel" id="obs-metar" hidden>
+            <div class="obs-head"><span class="obs-src">METAR bandara · arsip MET Norway</span><span class="obs-age" id="metar-age"></span></div>
+            <div class="obs-station" id="metar-station">—</div>
+            <div class="obs-stats" id="metar-stats"></div>
+            <div class="obs-raw" id="metar-raw"></div>
+          </div>
+        </div>
+        <p class="fineprint">Observasi adalah pengukuran nyata di stasiun — pembanding paling jujur untuk keluaran model. TAWES: jaringan stasiun otomatis GeoSphere Austria (eks ZAMG), tersedia bila lokasi di Austria. METAR: laporan resmi stasiun meteorologi bandara, umumnya tiap 30–60 menit, mencakup bandara Indonesia dan dunia.</p>
+      </section>
+
+      <!-- 24 jam -->
+      <section class="card">
+        <h2>24 jam ke depan <span class="h-sub">suhu &amp; peluang hujan</span></h2>
+        <div class="chart-wrap"><canvas id="hourly-chart"></canvas></div>
+        <div id="hourly-strip" class="hourly-strip"></div>
+      </section>
+
+      <!-- 7 hari -->
+      <section class="card">
+        <h2>7 hari ke depan</h2>
+        <div id="daily-list" class="daily-list"></div>
+      </section>
+
+      <!-- Perbandingan model -->
+      <section class="card" id="model-card">
+        <h2>Perbandingan model resmi <span class="h-sub">suhu 48 jam</span></h2>
+        <div class="legend">
+          <span class="lg"><i class="dot dot-ecmwf"></i>ECMWF <em>Uni Eropa</em></span>
+          <span class="lg"><i class="dot dot-gfs"></i>GFS <em>NOAA, AS</em></span>
+          <span class="lg"><i class="dot dot-icon"></i>ICON <em>DWD, Jerman</em></span>
+        </div>
+        <div class="chart-wrap"><canvas id="model-chart"></canvas></div>
+        <p class="model-verdict" id="model-verdict"></p>
+        <p class="fineprint">Prakiraan utama memakai kombinasi <em>best match</em>: model nasional beresolusi tertinggi untuk lokasi terpilih (mis. ICON-D2 ±2 km untuk Austria), diperbarui tiap 1–6 jam. Panel ini membandingkan tiga model global utama — bila kurvanya rapat, dunia sedang sepakat.</p>
+      </section>
+
+    </main>
+
+    <footer>
+      <p class="credit">Data: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> — agregasi model resmi ECMWF · NOAA · DWD · Météo-France · dan lainnya. Diperbarui otomatis tiap 10 menit. Mbah hanya perantara yang bertanggung jawab.</p>
+    </footer>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
