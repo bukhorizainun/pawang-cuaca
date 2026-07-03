@@ -46,10 +46,25 @@ Aplikasi menyegarkan data otomatis tiap 10 menit.
 - Catatan Mbah: satu kalimat saran harian, jenaka secukupnya
 - Ikon cuaca SVG garis halus, tema gelap ala dashboard meteorologi
 
+## Aplikasi terpasang (PWA) & notifikasi hujan
+
+- Bisa **dipasang** di HP/laptop lewat tombol "Pasang sebagai aplikasi" (muncul otomatis
+  bila browser mendukung), lalu berjalan seperti aplikasi native, lengkap dengan ikon.
+- **Bisa dibuka offline** — app shell (HTML/CSS/JS) dan data cuaca terakhir tersimpan lewat
+  service worker, jadi tetap menampilkan sesuatu walau koneksi terputus.
+- **Notifikasi hujan** — tombol "Ingatkan kalau mau hujan" mengaktifkan notifikasi browser
+  saat peluang hujan 2 jam ke depan ≥60%, diperiksa tiap penyegaran otomatis (±10 menit).
+  Ini murni client-side (tanpa server push), jadi berjalan selagi aplikasi terbuka; sebagian
+  browser (terutama Chrome desktop/Android, saat aplikasi terpasang) bisa memeriksanya
+  secara berkala walau tab tertutup, tapi dukungan latar-belakang penuh bergantung
+  kebijakan tiap browser/OS — bukan jaminan dari aplikasi ini.
+
 ## Cara pakai
 
-Buka `index.html` di browser. Tanpa install, tanpa API key. Butuh koneksi internet.
+Buka `index.html` di browser. Tanpa install wajib, tanpa API key. Butuh koneksi internet
+(fitur offline hanya menampilkan data yang sempat termuat sebelumnya).
 
 ## Teknologi
 
-HTML + CSS + JavaScript murni, plus [Leaflet](https://leafletjs.com/) (via CDN, untuk peta radar).
+HTML + CSS + JavaScript murni, plus [Leaflet](https://leafletjs.com/) (via CDN, untuk peta radar)
+dan sebuah service worker untuk PWA.

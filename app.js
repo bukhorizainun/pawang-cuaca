@@ -656,6 +656,7 @@ async function loadWeather(place) {
   loadObservations(place, mainRes.value.current.temperature_2m);
   loadAirQuality(place);
   loadRadar(place);
+  checkRainAlert(mainRes.value, place);
 
   if (modelRes.status === "fulfilled") {
     $("model-card").hidden = false;
@@ -1029,6 +1030,90 @@ $("radar-play").addEventListener("click", toggleRadarPlayback);
 $("radar-slider").addEventListener("input", e => { stopRadarPlayback(); setRadarFrame(+e.target.value); });
 
 setInterval(() => loadWeather(currentPlace), REFRESH_MS);
+
+/* ===================== PWA: pasang & offline ===================== */
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => { /* mode file:// tidak dukung SW, aman diabaikan */ });
+  });
+}
+
+let deferredInstallPrompt = null;
+
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  $("install-btn").hidden = false;
+});
+
+$("install-btn").addEventListener("click", async () => {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  $("install-btn").hidden = true;
+});
+
+window.addEventListener("appinstalled", () => { $("install-btn").hidden = true; });
+
+/* ===================== notifikasi hujan ===================== */
+
+const RAIN_NOTIFY_KEY = "pawang-cuaca:rain-notify";
+const RAIN_NOTIFY_THRESHOLD = 60; // persen peluang hujan dalam 2 jam ke depan
+let rainNotifyEnabled = false;
+let lastRainAlertKey = null; // cegah notifikasi berulang untuk kondisi & hari yang sama
+
+try { rainNotifyEnabled = localStorage.getItem(RAIN_NOTIFY_KEY) === "1"; } catch (e) { /* abaikan */ }
+
+function updateNotifyBtn() {
+  const btn = $("notify-btn");
+  if (!("Notification" in window)) { btn.hidden = true; return; }
+  btn.hidden = false;
+  btn.textContent = rainNotifyEnabled ? "Notifikasi hujan: aktif" : "Ingatkan kalau mau hujan";
+  btn.classList.toggle("active", rainNotifyEnabled);
+}
+
+async function toggleRainNotify() {
+  if (!("Notification" in window)) return;
+  if (!rainNotifyEnabled) {
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") { updateNotifyBtn(); return; }
+    rainNotifyEnabled = true;
+  } else {
+    rainNotifyEnabled = false;
+  }
+  try { localStorage.setItem(RAIN_NOTIFY_KEY, rainNotifyEnabled ? "1" : "0"); } catch (e) { /* abaikan */ }
+  updateNotifyBtn();
+}
+
+function fireRainNotification(place, prob) {
+  const title = "Pawang Cuaca";
+  const body = `Peluang hujan ${prob}% dalam 2 jam ke depan di ${place.name}. Payung, kawan.`;
+  const opts = { body, icon: "icons/icon-192.png", badge: "icons/icon-192.png", tag: "pawang-cuaca-rain" };
+  if (navigator.serviceWorker) {
+    navigator.serviceWorker.ready.then(reg => reg.showNotification(title, opts)).catch(() => new Notification(title, opts));
+  } else {
+    new Notification(title, opts);
+  }
+}
+
+function checkRainAlert(data, place) {
+  if (!rainNotifyEnabled || !("Notification" in window) || Notification.permission !== "granted") return;
+  const h = data.hourly;
+  let idx = h.time.indexOf(data.current.time.slice(0, 13) + ":00");
+  if (idx < 0) idx = 0;
+  const upcoming = h.precipitation_probability.slice(idx, idx + 2);
+  const maxProb = upcoming.length ? Math.max(...upcoming) : 0;
+  const alertKey = data.current.time.slice(0, 10) + "|" + place.name;
+  if (maxProb >= RAIN_NOTIFY_THRESHOLD && lastRainAlertKey !== alertKey) {
+    lastRainAlertKey = alertKey;
+    fireRainNotification(place, Math.round(maxProb));
+  }
+}
+
+$("notify-btn").addEventListener("click", toggleRainNotify);
+updateNotifyBtn();
 
 /* ===================== mulai ===================== */
 loadWeather(currentPlace);

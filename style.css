@@ -426,9 +426,12 @@ canvas { display: block; width: 100%; }
 
 /* ===== Footer ===== */
 footer { margin-top: 24px; }
+.app-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.btn-ghost.active { color: var(--amber); border-color: var(--amber); }
 .credit { font-size: 0.75rem; line-height: 1.55; color: var(--faint); text-align: center; }
 .credit a { color: var(--dim); text-decoration: none; border-bottom: 1px dotted var(--faint); }
 .credit a:hover { color: var(--text); }
+footer .fineprint { text-align: center; margin-top: 8px; }
 
 /* ===== Responsif ===== */
 @media (max-width: 640px) {

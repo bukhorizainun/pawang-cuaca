@@ -5,7 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pawang Cuaca — Prakiraan Multi-Model</title>
   <meta name="description" content="Prakiraan cuaca sedunia berbasis model resmi ECMWF, NOAA GFS, dan DWD ICON. Dibawakan dengan serius. Hampir.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><circle cx=%2216%22 cy=%2216%22 r=%229%22 fill=%22none%22 stroke=%22%23e8b64c%22 stroke-width=%222.5%22/><line x1=%2216%22 y1=%221%22 x2=%2216%22 y2=%225%22 stroke=%22%23e8b64c%22 stroke-width=%222.5%22/><line x1=%2216%22 y1=%2227%22 x2=%2216%22 y2=%2231%22 stroke=%22%23e8b64c%22 stroke-width=%222.5%22/><line x1=%221%22 y1=%2216%22 x2=%225%22 y2=%2216%22 stroke=%22%23e8b64c%22 stroke-width=%222.5%22/><line x1=%2227%22 y1=%2216%22 x2=%2231%22 y2=%2216%22 stroke=%22%23e8b64c%22 stroke-width=%222.5%22/></svg>">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0d1117">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Pawang Cuaca">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
@@ -154,7 +160,12 @@
     </main>
 
     <footer>
+      <div class="app-actions">
+        <button id="install-btn" class="btn-ghost" type="button" hidden>Pasang sebagai aplikasi</button>
+        <button id="notify-btn" class="btn-ghost" type="button" hidden>Ingatkan kalau mau hujan</button>
+      </div>
       <p class="credit">Data: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> — agregasi model resmi ECMWF · NOAA · DWD · Météo-France · dan lainnya. Diperbarui otomatis tiap 10 menit. Mbah hanya perantara yang bertanggung jawab.</p>
+      <p class="fineprint">Notifikasi hujan berjalan selagi aplikasi terbuka (diperiksa tiap penyegaran, ±10 menit) dan bila terpasang sebagai aplikasi, sebagian browser (terutama Chrome desktop/Android) bisa menjalankannya secara berkala di latar belakang. Dukungan latar-belakang penuh bergantung kebijakan tiap browser dan OS.</p>
     </footer>
 
   </div>
